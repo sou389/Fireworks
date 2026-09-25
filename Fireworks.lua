@@ -1,18 +1,21 @@
---// Fireworks v6.4
+--// Fireworks v6.6
 local hui = gethui and gethui() or game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
 local LP = Players.LocalPlayer
 
 local S = {
     WalkSpeed = 16, JumpPower = 50, InfiniteJump = false,
-    Invisible = false, ESP = false, Kill = false,
-    KillRange = 30,
+    ESP = false,
     GodMode = false, Noclip = false, FullBright = false, RainbowUI = true,
+    BuildSize = 5,
 }
+
+local SavedPos = nil
 
 local T = {
     Bg = Color3.fromRGB(15, 15, 25),
@@ -86,8 +89,8 @@ C("UICorner", { CornerRadius = UDim.new(0, 13), Parent = TB })
 C("UIStroke", { Color = T.A1, Thickness = 1.5, Parent = TB })
 
 local M = C("Frame", {
-    Size = UDim2.new(0, 170, 0, 400),
-    Position = UDim2.new(0.5, -85, 0.5, -200),
+    Size = UDim2.new(0, 210, 0, 460),
+    Position = UDim2.new(0.5, -105, 0.5, -230),
     BackgroundColor3 = T.Bg, BackgroundTransparency = 0.05,
     BorderSizePixel = 0, Visible = false, Parent = SG,
 })
@@ -186,6 +189,33 @@ local function MK(y, lbl, key, cb)
         }):Play()
         if cb then
             local ok, err = pcall(cb, S[key])
+            if not ok then warn("[Fireworks]", err) end
+        end
+    end)
+end
+
+local function AB(y, lbl, cb)
+    local b = C("TextButton", {
+        Text = lbl, Size = UDim2.new(1, -16, 0, 26),
+        Position = UDim2.new(0, 8, 0, y),
+        BackgroundColor3 = T.Card, BackgroundTransparency = 0.1,
+        BorderSizePixel = 0, AutoButtonColor = false,
+        TextColor3 = T.Text, Font = Enum.Font.GothamBold,
+        TextSize = 10, Parent = M,
+    })
+    C("UICorner", { CornerRadius = UDim.new(0, 8), Parent = b })
+    C("UIStroke", { Color = T.A1, Thickness = 1, Transparency = 0.3, Parent = b })
+    b.MouseButton1Click:Connect(function()
+        TweenService:Create(b, TweenInfo.new(0.1), {
+            BackgroundColor3 = Color3.fromRGB(60, 100, 120)
+        }):Play()
+        task.delay(0.15, function()
+            TweenService:Create(b, TweenInfo.new(0.2), {
+                BackgroundColor3 = T.Card
+            }):Play()
+        end)
+        if cb then
+            local ok, err = pcall(cb)
             if not ok then warn("[Fireworks]", err) end
         end
     end)
@@ -338,65 +368,43 @@ Players.PlayerAdded:Connect(function(p)
 end)
 Players.PlayerRemoving:Connect(RE)
 
--- ★ 近づいたら上空に飛ばす
-local function LaunchPlayer(p)
-    local char = p.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart") or char.PrimaryPart
-    local hum = char:FindFirstChildOfClass("Humanoid")
+-- テレポート（保存/移動）
+local function SavePos()
+    local hrp = HRP()
+    if hrp then
+        SavedPos = hrp.CFrame
+        print("[Fireworks] 位置を保存しました")
+    end
+end
+
+local function TeleportToSaved()
+    if not SavedPos then
+        warn("[Fireworks] 保存された位置がありません")
+        return
+    end
+    local hrp = HRP()
+    if hrp then
+        hrp.CFrame = SavedPos + Vector3.new(0, 3, 0)
+    end
+end
+
+-- ★ ビルド（パーツを置く）当たり判定あり
+local function BuildPart()
+    local hrp = HRP()
     if not hrp then return end
-
-    hrp.Anchored = false
-    hrp.CanCollide = false
-    hrp.AssemblyLinearVelocity = Vector3.new(0, 500, 0)
-    hrp.Velocity = Vector3.new(0, 500, 0)
-    if hum then
-        hum.PlatformStand = true
-    end
+    local cam = workspace.CurrentCamera
+    local pos = hrp.Position + cam.CFrame.LookVector * 10
+    local part = Instance.new("Part")
+    part.Size = Vector3.new(S.BuildSize, S.BuildSize, S.BuildSize)
+    part.Position = pos
+    part.Anchored = true
+    part.CanCollide = true
+    part.CanTouch = true
+    part.CanQuery = true
+    part.Color = RC(1)
+    part.Material = Enum.Material.Neon
+    part.Parent = Workspace
 end
-
-local function AutoKill()
-    local myHrp = HRP()
-    if not myHrp then return end
-    local myPos = myHrp.Position
-
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LP then
-            local char = p.Character
-            if char then
-                local hrp = char:FindFirstChild("HumanoidRootPart") or char.PrimaryPart
-                local hum = char:FindFirstChildOfClass("Humanoid")
-                if hrp and hum and hum.Health > 0 then
-                    local dist = (hrp.Position - myPos).Magnitude
-                    if dist <= S.KillRange then
-                        pcall(LaunchPlayer, p)
-                    end
-                end
-            end
-        end
-    end
-end
-
-task.spawn(function()
-    while task.wait(0.15) do
-        if S.Kill then
-            AutoKill()
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.1) do
-        if S.Invisible then
-            local c = LP.Character
-            if c then
-                for _, p in pairs(c:GetDescendants()) do
-                    if p:IsA("BasePart") then p.LocalTransparencyModifier = 0.9 end
-                end
-            end
-        end
-    end
-end)
 
 task.spawn(function()
     while task.wait(0.5) do
@@ -456,22 +464,39 @@ UserInputService.JumpRequest:Connect(function()
 end)
 
 MK(36, "Infinite Jump", "InfiniteJump")
-MK(66, "Invisible", "Invisible")
-MK(96, "ESP", "ESP", function(v)
+MK(66, "ESP", "ESP", function(v)
     if v then
         for _, p in pairs(Players:GetPlayers()) do CE(p) end
     else
         for p, _ in pairs(EO) do RE(p) end
     end
 end)
-MK(126, "Kill (Auto)", "Kill")
-MK(156, "God Mode", "GodMode")
-MK(186, "Noclip", "Noclip")
-MK(216, "Full Bright", "FullBright")
-MK(246, "Rainbow UI", "RainbowUI")
+MK(96, "God Mode", "GodMode")
+MK(126, "Noclip", "Noclip")
+MK(156, "Full Bright", "FullBright")
+MK(186, "Rainbow UI", "RainbowUI")
 
-MS(280, "WalkSpeed", 1, 300, S.WalkSpeed, "WalkSpeed")
-MS(316, "JumpPower", 1, 300, S.JumpPower, "JumpPower")
-MS(352, "KillRange", 5, 100, S.KillRange, "KillRange")
+C("TextLabel", {
+    Text = "Teleport", Size = UDim2.new(1, -16, 0, 16),
+    Position = UDim2.new(0, 8, 0, 216),
+    BackgroundTransparency = 1, TextColor3 = T.Sub,
+    Font = Enum.Font.GothamBold, TextSize = 10,
+    TextXAlignment = Enum.TextXAlignment.Left, Parent = M,
+})
+AB(234, "Save Position", SavePos)
+AB(264, "Teleport to Saved", TeleportToSaved)
 
-print("[Fireworks v6.4] Loaded")
+C("TextLabel", {
+    Text = "Build", Size = UDim2.new(1, -16, 0, 16),
+    Position = UDim2.new(0, 8, 0, 294),
+    BackgroundTransparency = 1, TextColor3 = T.Sub,
+    Font = Enum.Font.GothamBold, TextSize = 10,
+    TextXAlignment = Enum.TextXAlignment.Left, Parent = M,
+})
+AB(312, "Place Part", BuildPart)
+MS(342, "PartSize", 1, 20, S.BuildSize, "BuildSize")
+
+MS(384, "WalkSpeed", 1, 300, S.WalkSpeed, "WalkSpeed")
+MS(420, "JumpPower", 1, 300, S.JumpPower, "JumpPower")
+
+print("[Fireworks v6.6] Loaded")
