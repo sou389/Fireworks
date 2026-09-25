@@ -1,4 +1,4 @@
---// Fireworks v5.2
+--// Fireworks v5.3
 local hui = gethui and gethui() or game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -63,16 +63,41 @@ local ScreenGui = Create("ScreenGui", {
     Parent = hui,
 })
 
--- ★ 画面サイズを小さく調整（スマホ対応）
+-- ★ 上部の「Fireworks」ボタン（タップで開閉）
+local TopBtn = Create("TextButton", {
+    Text = "Fireworks",
+    Size = UDim2.new(0, 100, 0, 28),
+    Position = UDim2.new(0.5, -50, 0, 5),
+    BackgroundColor3 = Color3.fromRGB(20, 20, 35),
+    BackgroundTransparency = 0.2,
+    BorderSizePixel = 0,
+    AutoButtonColor = false,
+    TextColor3 = Color3.fromRGB(240, 240, 255),
+    Font = Enum.Font.GothamBold,
+    TextSize = 13,
+    Parent = ScreenGui,
+})
+Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = TopBtn })
+local TopStroke = Create("UIStroke", { Color = RainbowColor(1), Thickness = 1.5, Parent = TopBtn })
+table.insert(RainbowStrokes, { stroke = TopStroke, speed = 1 })
+
+-- メインウィンドウ
 local Main = Create("Frame", {
     Size = UDim2.new(0, 170, 0, 340),
     Position = UDim2.new(0.5, -85, 0.5, -170),
     BackgroundColor3 = Color3.fromRGB(12, 12, 20),
-    BackgroundTransparency = 0.1, BorderSizePixel = 0, Parent = ScreenGui,
+    BackgroundTransparency = 0.1, BorderSizePixel = 0,
+    Visible = false,
+    Parent = ScreenGui,
 })
 Create("UICorner", { CornerRadius = UDim.new(0, 10), Parent = Main })
 local MainStroke = Create("UIStroke", { Color = RainbowColor(1), Thickness = 2, Parent = Main })
 table.insert(RainbowStrokes, { stroke = MainStroke, speed = 1 })
+
+-- ★ 上部ボタンをタップでメインウィンドウ開閉
+TopBtn.MouseButton1Click:Connect(function()
+    Main.Visible = not Main.Visible
+end)
 
 local Header = Create("Frame", {
     Size = UDim2.new(1, 0, 0, 32),
@@ -103,7 +128,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     Main.Visible = false
 end)
 
--- ドラッグ（長押し）
+-- ドラッグ
 local dragging, dragStart, startPos
 Header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
@@ -130,7 +155,6 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- トグル
 local function MakeToggle(y, label, key, callback)
     local btn = Create("TextButton", {
         Text = "", Size = UDim2.new(1, -16, 0, 24),
@@ -171,7 +195,6 @@ local function MakeToggle(y, label, key, callback)
     end)
 end
 
--- スライダー
 local function MakeSlider(y, label, min, max, default, key)
     local c = Create("Frame", {
         Size = UDim2.new(1, -16, 0, 34),
@@ -246,7 +269,6 @@ local function MakeSlider(y, label, min, max, default, key)
     end)
 end
 
--- ESP
 local ESP_Objects = {}
 
 local function CreateESP(player)
@@ -346,7 +368,6 @@ Players.PlayerAdded:Connect(function(p)
 end)
 Players.PlayerRemoving:Connect(RemoveESP)
 
--- フライ
 local FlyVelocity, FlyGyro
 
 local function StartFly()
@@ -489,4 +510,4 @@ MakeSlider(266, "WalkSpeed", 1, 300, State.WalkSpeed, "WalkSpeed")
 MakeSlider(302, "JumpPower", 1, 300, State.JumpPower, "JumpPower")
 MakeSlider(338, "FlySpeed", 10, 300, State.FlySpeed, "FlySpeed")
 
-print("[Fireworks v5.2] Loaded")
+print("[Fireworks v5.3] Loaded")
