@@ -1,4 +1,4 @@
---// Fireworks v8.0
+--// Fireworks v8.1
 local hui = gethui and gethui() or game:GetService("CoreGui")
 local P = game:GetService("Players")
 local RS = game:GetService("RunService")
@@ -16,13 +16,15 @@ ij="無限ジャンプ",esp="ESP",gm="ゴッドモード",nc="ノークリップ
 fb="フルブライト",rb="虹色UI",sp="移動速度",jp="ジャンプ力",
 sv="位置を保存",tp="保存位置に移動",tpP="プレイヤーに移動",sel="プレイヤー選択",
 one="パーツ1個",wl="壁",bx="箱",cs="城",tw="タワー",st="階段",ps="パーツサイズ",
-rj="再入場",sh="サーバー移動",lang="言語",saved="保存",none="なし"},
+rj="再入場",sh="サーバー移動",lang="言語",saved="保存",none="なし",ok="OK",
+title="Fireworks v8.1"},
 EN={p="Player",t="Teleport",b="Build",v="Visual",m="Misc",
 ij="Infinite Jump",esp="ESP",gm="God Mode",nc="Noclip",
 fb="Full Bright",rb="Rainbow UI",sp="WalkSpeed",jp="JumpPower",
 sv="Save Position",tp="TP to Saved",tpP="TP to Player",sel="Select Player",
 one="Place Part",wl="Wall",bx="Box",cs="Castle",tw="Tower",st="Stairs",ps="Part Size",
-rj="Rejoin",sh="Server Hop",lang="Language",saved="Saved",none="None"}
+rj="Rejoin",sh="Server Hop",lang="Language",saved="Saved",none="None",ok="OK",
+title="Fireworks v8.1"}
 }
 local function T(k) return L[Lg][k] or k end
 
@@ -30,6 +32,7 @@ local S={WalkSpeed=16,JumpPower=50,InfiniteJump=false,ESP=false,GodMode=false,
 Noclip=false,FullBright=false,RainbowUI=true,BuildSize=5}
 
 local Sp=nil SelP=nil EO={} CS={}
+local TextReg={}  -- 全部のテキスト登録用
 
 local C1=Color3.fromRGB
 local Th={Bg=C1(15,15,25),Cd=C1(24,24,38),Sl=C1(40,40,60),
@@ -48,6 +51,11 @@ end
 local function HR()
     local c=LP.Character if not c then return nil end
     return c:FindFirstChild("HumanoidRootPart") or c.PrimaryPart
+end
+
+-- ★ テキスト登録関数
+local function Reg(obj, key)
+    table.insert(TextReg, {o=obj, k=key})
 end
 
 task.spawn(function()
@@ -75,7 +83,8 @@ TB.MouseButton1Click:Connect(function() M.Visible=not M.Visible end)
 
 local H=C("Frame",{Size=UDim2.new(1,0,0,30),BackgroundColor3=Th.Cd,BackgroundTransparency=0.3,BorderSizePixel=0,Parent=M})
 C("UICorner",{CornerRadius=UDim.new(0,12),Parent=H})
-local HT=C("TextLabel",{Text="Fireworks v8.0",Size=UDim2.new(1,-40,1,0),Position=UDim2.new(0,10,0,0),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,Parent=H})
+local HT=C("TextLabel",{Text=T("title"),Size=UDim2.new(1,-40,1,0),Position=UDim2.new(0,10,0,0),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,Parent=H})
+Reg(HT, "title")
 
 local CB=C("TextButton",{Text="×",Size=UDim2.new(0,26,0,26),Position=UDim2.new(1,-30,0.5,-13),BackgroundColor3=C1(80,35,50),BorderSizePixel=0,AutoButtonColor=false,TextColor3=C1(255,200,220),Font=Enum.Font.GothamBold,TextSize=18,Parent=H})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=CB})
@@ -115,13 +124,15 @@ for i,k in ipairs(TbO) do
     C("UICorner",{CornerRadius=UDim.new(0,6),Parent=b})
     b.MouseButton1Click:Connect(function() Sel(k) end)
     TbB[k]=b
+    Reg(b, k)
     Tb[k]=C("ScrollingFrame",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.new(0,0,0,500),ScrollBarThickness=3,Visible=false,Parent=CA})
 end
 local function MK(par,y,lbl,key,cb)
     local b=C("TextButton",{Text="",Size=UDim2.new(1,-16,0,26),Position=UDim2.new(0,8,0,y),BackgroundColor3=Th.Cd,BackgroundTransparency=0.1,BorderSizePixel=0,AutoButtonColor=false,Parent=par})
     C("UICorner",{CornerRadius=UDim.new(0,8),Parent=b})
     C("UIStroke",{Color=Th.Of,Thickness=1.2,Transparency=0.4,Parent=b})
-    C("TextLabel",{Text=lbl,Size=UDim2.new(1,-50,1,0),Position=UDim2.new(0,14,0,0),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamMedium,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=b})
+    local lb=C("TextLabel",{Text=lbl,Size=UDim2.new(1,-50,1,0),Position=UDim2.new(0,14,0,0),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamMedium,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=b})
+    Reg(lb, key)
     local stt=C("TextLabel",{Text="OFF",Size=UDim2.new(0,35,1,0),Position=UDim2.new(1,-40,0,0),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Right,Parent=b})
     b.MouseButton1Click:Connect(function()
         S[key]=not S[key]
@@ -132,10 +143,11 @@ local function MK(par,y,lbl,key,cb)
     end)
 end
 
-local function AB(par,y,lbl,cb)
+local function AB(par,y,lbl,key,cb)
     local b=C("TextButton",{Text=lbl,Size=UDim2.new(1,-16,0,26),Position=UDim2.new(0,8,0,y),BackgroundColor3=Th.Cd,BackgroundTransparency=0.1,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=10,Parent=par})
     C("UICorner",{CornerRadius=UDim.new(0,8),Parent=b})
     C("UIStroke",{Color=Th.A1,Thickness=1,Transparency=0.3,Parent=b})
+    Reg(b, key)
     b.MouseButton1Click:Connect(function()
         TW:Create(b,TweenInfo.new(0.1),{BackgroundColor3=C1(60,100,120)}):Play()
         task.delay(0.15,function() TW:Create(b,TweenInfo.new(0.2),{BackgroundColor3=Th.Cd}):Play() end)
@@ -148,6 +160,7 @@ local function MS(par,y,lbl,mn,mx,df,key)
     C("UICorner",{CornerRadius=UDim.new(0,8),Parent=c})
     C("UIStroke",{Color=Th.Of,Thickness=1.2,Transparency=0.4,Parent=c})
     local l=C("TextLabel",{Text=lbl..": "..df,Size=UDim2.new(1,-16,0,12),Position=UDim2.new(0,10,0,2),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamMedium,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=c})
+    table.insert(TextReg, {o=l, k=key, isSlider=true, cur=df})
     local tr=C("Frame",{Size=UDim2.new(1,-20,0,4),Position=UDim2.new(0,10,0,22),BackgroundColor3=C1(20,20,32),BorderSizePixel=0,Parent=c})
     C("UICorner",{CornerRadius=UDim.new(1,0),Parent=tr})
     local fl=C("Frame",{Size=UDim2.new((df-mn)/(mx-mn),0,1,0),BackgroundColor3=Th.A1,BorderSizePixel=0,Parent=tr})
@@ -161,8 +174,11 @@ local function MS(par,y,lbl,mn,mx,df,key)
         local v=math.floor(mn+(mx-mn)*r)
         fl.Size=UDim2.new(r,0,1,0)
         kb.Position=UDim2.new(r,-5,0.5,-5)
-        l.Text=lbl..": "..v
+        l.Text=L[Lg][key]..": "..v
         S[key]=v
+        for _,it in ipairs(TextReg) do
+            if it.o==l then it.cur=v end
+        end
     end
     tr.InputBegan:Connect(function(i)
         if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dr=true up(i) end
@@ -234,31 +250,32 @@ P.PlayerRemoving:Connect(RE)
 
 -- Player
 local pt=Tb["p"]
-MK(pt,4,T("ij"),"InfiniteJump")
-MK(pt,34,T("esp"),"ESP",function(v)
+MK(pt,4,"","InfiniteJump")
+MK(pt,34,"","ESP",function(v)
     if v then for _,p in pairs(P:GetPlayers()) do CE(p) end
     else for p,_ in pairs(EO) do RE(p) end end
 end)
-MK(pt,64,T("gm"),"GodMode")
-MK(pt,94,T("nc"),"Noclip")
-MK(pt,124,T("fb"),"FullBright")
-MS(pt,160,T("sp"),1,300,S.WalkSpeed,"WalkSpeed")
-MS(pt,196,T("jp"),1,300,S.JumpPower,"JumpPower")
+MK(pt,64,"","GodMode")
+MK(pt,94,"","Noclip")
+MK(pt,124,"","FullBright")
+MS(pt,160,"",1,300,S.WalkSpeed,"WalkSpeed")
+MS(pt,196,"",1,300,S.JumpPower,"JumpPower")
 
 -- Teleport
 local tt=Tb["t"]
 local tpI=C("TextLabel",{Text=T("saved")..": "..T("none"),Size=UDim2.new(1,-16,0,14),Position=UDim2.new(0,8,0,4),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.Gotham,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=tt})
-AB(tt,24,T("sv"),function()
+AB(tt,24,"","sv",function()
     local h=HR()
     if h then Sp=h.CFrame
-        tpI.Text=T("saved")..": "..string.format("%.0f,%.0f,%.0f",h.Position.X,h.Position.Y,h.Position.Z)
+        tpI.Text=L[Lg].saved..": "..string.format("%.0f,%.0f,%.0f",h.Position.X,h.Position.Y,h.Position.Z)
     end
 end)
-AB(tt,56,T("tp"),function()
+AB(tt,56,"","tp",function()
     if not Sp then return end
     local h=HR() if h then h.CFrame=Sp+Vector3.new(0,3,0) end
 end)
-C("TextLabel",{Text=T("sel"),Size=UDim2.new(1,-16,0,14),Position=UDim2.new(0,8,0,92),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=tt})
+local slLbl=C("TextLabel",{Text=T("sel"),Size=UDim2.new(1,-16,0,14),Position=UDim2.new(0,8,0,92),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=tt})
+Reg(slLbl, "sel")
 local PL=C("ScrollingFrame",{Size=UDim2.new(1,-16,0,130),Position=UDim2.new(0,8,0,110),BackgroundColor3=Th.Cd,BackgroundTransparency=0.3,BorderSizePixel=0,CanvasSize=UDim2.new(0,0,0,0),ScrollBarThickness=3,Parent=tt})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=PL})
 local function Rf()
@@ -278,7 +295,7 @@ local function Rf()
     end
     PL.CanvasSize=UDim2.new(0,0,0,y)
 end
-AB(tt,248,T("tpP"),function()
+AB(tt,248,"","tpP",function()
     if not SelP then return end
     local h=HR()
     local ch=SelP.Character
@@ -300,19 +317,19 @@ local function MP(pos,size,col,mat)
     p.Parent=WS
     return p
 end
-AB(bt,4,T("one"),function()
+AB(bt,4,"","one",function()
     local h=HR() if not h then return end
     local c=workspace.CurrentCamera
     MP(h.Position+c.CFrame.LookVector*10,Vector3.new(S.BuildSize,S.BuildSize,S.BuildSize))
 end)
-AB(bt,36,T("wl"),function()
+AB(bt,36,"","wl",function()
     local h=HR() if not h then return end
     local c=workspace.CurrentCamera
     local pos=h.Position+c.CFrame.LookVector*10+Vector3.new(0,S.BuildSize*1.5,0)
     local p=MP(pos,Vector3.new(S.BuildSize*4,S.BuildSize*3,1),C1(120,120,140),Enum.Material.Concrete)
     p.CFrame=CFrame.new(pos,pos+c.CFrame.LookVector)
 end)
-AB(bt,68,T("bx"),function()
+AB(bt,68,"","bx",function()
     local h=HR() if not h then return end
     local c=workspace.CurrentCamera
     local base=h.Position+c.CFrame.LookVector*15
@@ -325,7 +342,7 @@ AB(bt,68,T("bx"),function()
         w.CFrame=CFrame.new(pos,pos+Vector3.new(-off.X,0,-off.Z))
     end
 end)
-AB(bt,100,T("cs"),function()
+AB(bt,100,"","cs",function()
     local h=HR() if not h then return end
     local c=workspace.CurrentCamera
     local base=h.Position+c.CFrame.LookVector*20
@@ -340,7 +357,7 @@ AB(bt,100,T("cs"),function()
     MP(base+Vector3.new(0,sz*3,0),Vector3.new(sz*4,1,sz*4),C1(160,120,100),Enum.Material.Wood)
     MP(base+Vector3.new(0,sz*5,0),Vector3.new(sz*2,sz*4,sz*2),C1(180,180,200),Enum.Material.Slate)
 end)
-AB(bt,132,T("tw"),function()
+AB(bt,132,"","tw",function()
     local h=HR() if not h then return end
     local c=workspace.CurrentCamera
     local base=h.Position+c.CFrame.LookVector*10
@@ -348,7 +365,7 @@ AB(bt,132,T("tw"),function()
         MP(base+Vector3.new(0,i*S.BuildSize+S.BuildSize/2,0),Vector3.new(S.BuildSize,S.BuildSize,S.BuildSize))
     end
 end)
-AB(bt,164,T("st"),function()
+AB(bt,164,"","st",function()
     local h=HR() if not h then return end
     local c=workspace.CurrentCamera
     local base=h.Position+c.CFrame.LookVector*10
@@ -357,16 +374,16 @@ AB(bt,164,T("st"),function()
         MP(base+c.CFrame.LookVector*(i*sz)+Vector3.new(0,i*(sz/2),0),Vector3.new(sz*2,sz/2,sz))
     end
 end)
-MS(bt,200,T("ps"),1,20,S.BuildSize,"BuildSize")
+MS(bt,200,"",1,20,S.BuildSize,"BuildSize")
 
 -- Visual
 local vt=Tb["v"]
-MK(vt,4,T("rb"),"RainbowUI")
+MK(vt,4,"","RainbowUI")
 
 -- Misc
 local mt=Tb["m"]
-AB(mt,4,T("rj"),function() TS:Teleport(game.PlaceId,LP) end)
-AB(mt,36,T("sh"),function()
+AB(mt,4,"","rj",function() TS:Teleport(game.PlaceId,LP) end)
+AB(mt,36,"","sh",function()
     local Ht=game:GetService("HttpService")
     local ok,res=pcall(function() return game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100") end)
     if ok and res then
@@ -379,24 +396,41 @@ AB(mt,36,T("sh"),function()
     end
 end)
 
-C("TextLabel",{Text=T("lang"),Size=UDim2.new(1,-16,0,14),Position=UDim2.new(0,8,0,76),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=mt})
+local lgLbl=C("TextLabel",{Text=T("lang"),Size=UDim2.new(1,-16,0,14),Position=UDim2.new(0,8,0,76),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=mt})
+Reg(lgLbl, "lang")
 local BJP=C("TextButton",{Text="日本語",Size=UDim2.new(0.5,-12,0,26),Position=UDim2.new(0,8,0,94),BackgroundColor3=Th.Sl,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=10,Parent=mt})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=BJP})
 local BEN=C("TextButton",{Text="English",Size=UDim2.new(0.5,-12,0,26),Position=UDim2.new(0.5,4,0,94),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Sb,Font=Enum.Font.GothamBold,TextSize=10,Parent=mt})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=BEN})
 
-local function UL()
-    for i,k in ipairs(TbO) do TbB[k].Text=T(k) end
-    tpI.Text=T("saved")..": "..(Sp and "OK" or T("none"))
+-- ★ 全部のテキストを更新する関数
+local function UpdateAll()
+    for _, it in ipairs(TextReg) do
+        if it.o and it.o.Parent then
+            if it.isSlider then
+                it.o.Text = L[Lg][it.k] .. ": " .. it.cur
+            else
+                it.o.Text = L[Lg][it.k]
+            end
+        end
+    end
+    -- 保存状態を更新
+    tpI.Text = L[Lg].saved .. ": " .. (Sp and L[Lg].ok or L[Lg].none)
 end
+
 BJP.MouseButton1Click:Connect(function()
     Lg="JP" BJP.BackgroundColor3=Th.Sl BJP.TextColor3=Th.Tx
-    BEN.BackgroundColor3=Th.Cd BEN.TextColor3=Th.Sb UL()
+    BEN.BackgroundColor3=Th.Cd BEN.TextColor3=Th.Sb
+    UpdateAll()
 end)
 BEN.MouseButton1Click:Connect(function()
     Lg="EN" BEN.BackgroundColor3=Th.Sl BEN.TextColor3=Th.Tx
-    BJP.BackgroundColor3=Th.Cd BJP.TextColor3=Th.Sb UL()
+    BJP.BackgroundColor3=Th.Cd BJP.TextColor3=Th.Sb
+    UpdateAll()
 end)
+
+-- 初期テキスト適用
+UpdateAll()
 
 -- Loops
 task.spawn(function()
@@ -445,4 +479,4 @@ UIS.JumpRequest:Connect(function()
 end)
 
 Sel("p")
-print("[Fireworks v8.0] Loaded")
+print("[Fireworks v8.1] Loaded")
