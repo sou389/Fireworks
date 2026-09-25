@@ -1,4 +1,4 @@
---// Fireworks v6.3
+--// Fireworks v6.4
 local hui = gethui and gethui() or game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -10,7 +10,7 @@ local LP = Players.LocalPlayer
 local S = {
     WalkSpeed = 16, JumpPower = 50, InfiniteJump = false,
     Invisible = false, ESP = false, Kill = false,
-    KillMode = 1, -- 1=上に飛ばす, 2=奈落, 3=HP0
+    KillRange = 30,
     GodMode = false, Noclip = false, FullBright = false, RainbowUI = true,
 }
 
@@ -47,6 +47,12 @@ local function HUM()
     return c:FindFirstChildOfClass("Humanoid")
 end
 
+local function HRP()
+    local c = LP.Character
+    if not c then return nil end
+    return c:FindFirstChild("HumanoidRootPart") or c.PrimaryPart
+end
+
 local RS = {}
 task.spawn(function()
     while task.wait(0.03) do
@@ -77,7 +83,7 @@ local TB = C("TextButton", {
     Font = Enum.Font.GothamBold, TextSize = 12, Parent = SG,
 })
 C("UICorner", { CornerRadius = UDim.new(0, 13), Parent = TB })
-local TBs = C("UIStroke", { Color = T.A1, Thickness = 1.5, Parent = TB })
+C("UIStroke", { Color = T.A1, Thickness = 1.5, Parent = TB })
 
 local M = C("Frame", {
     Size = UDim2.new(0, 170, 0, 400),
@@ -86,7 +92,7 @@ local M = C("Frame", {
     BorderSizePixel = 0, Visible = false, Parent = SG,
 })
 C("UICorner", { CornerRadius = UDim.new(0, 12), Parent = M })
-local Ms = C("UIStroke", { Color = T.A1, Thickness = 1.5, Parent = M })
+C("UIStroke", { Color = T.A1, Thickness = 1.5, Parent = M })
 
 TB.MouseButton1Click:Connect(function()
     M.Visible = not M.Visible
@@ -121,7 +127,6 @@ end)
 
 local dragging = false
 local dragStart, startPos
-
 H.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
     or input.UserInputType == Enum.UserInputType.Touch then
@@ -186,29 +191,78 @@ local function MK(y, lbl, key, cb)
     end)
 end
 
--- モード切替ボタン
-local function MKM(y, lbl, mode, cb)
-    local b = C("TextButton", {
-        Text = lbl, Size = UDim2.new(1, -16, 0, 24),
+local function MS(y, lbl, mn, mx, df, key)
+    local c = C("Frame", {
+        Size = UDim2.new(1, -16, 0, 32),
         Position = UDim2.new(0, 8, 0, y),
         BackgroundColor3 = T.Card, BackgroundTransparency = 0.1,
-        BorderSizePixel = 0, AutoButtonColor = false,
-        TextColor3 = T.Text, Font = Enum.Font.GothamBold,
-        TextSize = 10, Parent = M,
+        BorderSizePixel = 0, Parent = M,
     })
-    C("UICorner", { CornerRadius = UDim.new(0, 6), Parent = b })
-    C("UIStroke", { Color = T.Off, Thickness = 1, Transparency = 0.4, Parent = b })
-    b.MouseButton1Click:Connect(function()
-        S.KillMode = mode
-        if cb then cb(mode) end
+    C("UICorner", { CornerRadius = UDim.new(0, 8), Parent = c })
+    C("UIStroke", { Color = T.Off, Thickness = 1.2, Transparency = 0.4, Parent = c })
+    local l = C("TextLabel", {
+        Text = lbl .. ": " .. df, Size = UDim2.new(1, -16, 0, 12),
+        Position = UDim2.new(0, 10, 0, 2), BackgroundTransparency = 1,
+        TextColor3 = T.Text, Font = Enum.Font.GothamMedium,
+        TextSize = 9, TextXAlignment = Enum.TextXAlignment.Left, Parent = c,
+    })
+    local tr = C("Frame", {
+        Size = UDim2.new(1, -20, 0, 4),
+        Position = UDim2.new(0, 10, 0, 22),
+        BackgroundColor3 = Color3.fromRGB(20, 20, 32),
+        BorderSizePixel = 0, Parent = c,
+    })
+    C("UICorner", { CornerRadius = UDim.new(1, 0), Parent = tr })
+    local fl = C("Frame", {
+        Size = UDim2.new((df - mn) / (mx - mn), 0, 1, 0),
+        BackgroundColor3 = T.A1, BorderSizePixel = 0, Parent = tr,
+    })
+    C("UICorner", { CornerRadius = UDim.new(1, 0), Parent = fl })
+    C("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, T.A1),
+            ColorSequenceKeypoint.new(0.5, T.A2),
+            ColorSequenceKeypoint.new(1, T.A3),
+        }), Parent = fl,
+    })
+    local kb = C("Frame", {
+        Size = UDim2.new(0, 10, 0, 10),
+        Position = UDim2.new((df - mn) / (mx - mn), -5, 0.5, -5),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        BorderSizePixel = 0, Parent = tr,
+    })
+    C("UICorner", { CornerRadius = UDim.new(1, 0), Parent = kb })
+    local dr = false
+    local function up(inp)
+        local r = math.clamp(
+            (inp.Position.X - tr.AbsolutePosition.X) / math.max(tr.AbsoluteSize.X, 1), 0, 1)
+        local v = math.floor(mn + (mx - mn) * r)
+        fl.Size = UDim2.new(r, 0, 1, 0)
+        kb.Position = UDim2.new(r, -5, 0.5, -5)
+        l.Text = lbl .. ": " .. v
+        S[key] = v
+    end
+    tr.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1
+        or i.UserInputType == Enum.UserInputType.Touch then
+            dr = true up(i)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if dr and (i.UserInputType == Enum.UserInputType.MouseMovement
+        or i.UserInputType == Enum.UserInputType.Touch) then up(i) end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1
+        or i.UserInputType == Enum.UserInputType.Touch then dr = false end
     end)
 end
 
-local ESP_Objects = {}
+local EO = {}
 
 local function CE(p)
     if p == LP then return end
-    if ESP_Objects[p] then return end
+    if EO[p] then return end
     local sg = C("ScreenGui", {
         Name = "FW_E_" .. p.Name, ResetOnSpawn = false,
         IgnoreGuiInset = true, Parent = hui,
@@ -228,25 +282,25 @@ local function CE(p)
         Font = Enum.Font.Gotham, TextSize = 9,
         TextStrokeTransparency = 0, Visible = false, Parent = sg,
     })
-    ESP_Objects[p] = { g = sg, b = bx, s = st, n = nt, d = dt }
+    EO[p] = { g = sg, b = bx, s = st, n = nt, d = dt }
 end
 
 local function RE(p)
-    local o = ESP_Objects[p]
+    local o = EO[p]
     if o and o.g then o.g:Destroy() end
-    ESP_Objects[p] = nil
+    EO[p] = nil
 end
 
 RunService.RenderStepped:Connect(function()
     if not S.ESP then
-        for _, o in pairs(ESP_Objects) do
+        for _, o in pairs(EO) do
             o.b.Visible = false o.n.Visible = false o.d.Visible = false
         end
         return
     end
     local cam = workspace.CurrentCamera
     if not cam then return end
-    for p, o in pairs(ESP_Objects) do
+    for p, o in pairs(EO) do
         local c = p.Character
         local h = c and c:FindFirstChild("HumanoidRootPart")
         local hd = c and c:FindFirstChild("Head")
@@ -284,60 +338,53 @@ Players.PlayerAdded:Connect(function(p)
 end)
 Players.PlayerRemoving:Connect(RE)
 
--- ★ 強化版Kill
-local function KillPlayer(p)
+-- ★ 近づいたら上空に飛ばす
+local function LaunchPlayer(p)
     local char = p.Character
     if not char then return end
     local hrp = char:FindFirstChild("HumanoidRootPart") or char.PrimaryPart
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hrp then return end
 
-    if S.KillMode == 1 then
-        -- モード1：上空に飛ばして落下死
-        hrp.Anchored = false
-        hrp.CanCollide = false
-        hrp.AssemblyLinearVelocity = Vector3.new(0, 500, 0)
-        hrp.Velocity = Vector3.new(0, 500, 0)
-        if hum then
-            hum.PlatformStand = true
-            hum.Sit = false
-        end
-
-    elseif S.KillMode == 2 then
-        -- モード2：奈落(Y=-1000)へテレポート
-        hrp.CFrame = CFrame.new(hrp.Position.X, -1000, hrp.Position.Z)
-        if hum then
-            hum.Health = 0
-        end
-
-    elseif S.KillMode == 3 then
-        -- モード3：HPを0にする（サーバー管理には効かない）
-        if hum then
-            hum.Health = 0
-            pcall(function()
-                hum:TakeDamage(hum.MaxHealth * 999)
-            end)
-        end
+    hrp.Anchored = false
+    hrp.CanCollide = false
+    hrp.AssemblyLinearVelocity = Vector3.new(0, 500, 0)
+    hrp.Velocity = Vector3.new(0, 500, 0)
+    if hum then
+        hum.PlatformStand = true
     end
 end
 
-local function KillAll()
+local function AutoKill()
+    local myHrp = HRP()
+    if not myHrp then return end
+    local myPos = myHrp.Position
+
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LP then
-            pcall(KillPlayer, p)
+            local char = p.Character
+            if char then
+                local hrp = char:FindFirstChild("HumanoidRootPart") or char.PrimaryPart
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hrp and hum and hum.Health > 0 then
+                    local dist = (hrp.Position - myPos).Magnitude
+                    if dist <= S.KillRange then
+                        pcall(LaunchPlayer, p)
+                    end
+                end
+            end
         end
     end
 end
 
 task.spawn(function()
-    while task.wait(0.3) do
+    while task.wait(0.15) do
         if S.Kill then
-            KillAll()
+            AutoKill()
         end
     end
 end)
 
--- その他
 task.spawn(function()
     while task.wait(0.1) do
         if S.Invisible then
@@ -414,25 +461,17 @@ MK(96, "ESP", "ESP", function(v)
     if v then
         for _, p in pairs(Players:GetPlayers()) do CE(p) end
     else
-        for p, _ in pairs(ESP_Objects) do RE(p) end
+        for p, _ in pairs(EO) do RE(p) end
     end
 end)
-MK(126, "Kill Player", "Kill")
+MK(126, "Kill (Auto)", "Kill")
 MK(156, "God Mode", "GodMode")
 MK(186, "Noclip", "Noclip")
 MK(216, "Full Bright", "FullBright")
 MK(246, "Rainbow UI", "RainbowUI")
 
--- Killモード切替
-C("TextLabel", {
-    Text = "Kill Mode:", Size = UDim2.new(1, -16, 0, 16),
-    Position = UDim2.new(0, 8, 0, 280),
-    BackgroundTransparency = 1, TextColor3 = T.Sub,
-    Font = Enum.Font.GothamBold, TextSize = 10,
-    TextXAlignment = Enum.TextXAlignment.Left, Parent = M,
-})
-MKM(298, "1. Up (上空に飛ばす)", 1)
-MKM(326, "2. Void (奈落に落とす)", 2)
-MKM(354, "3. HP 0 (HP削除)", 3)
+MS(280, "WalkSpeed", 1, 300, S.WalkSpeed, "WalkSpeed")
+MS(316, "JumpPower", 1, 300, S.JumpPower, "JumpPower")
+MS(352, "KillRange", 5, 100, S.KillRange, "KillRange")
 
-print("[Fireworks v6.3] Loaded")
+print("[Fireworks v6.4] Loaded")
