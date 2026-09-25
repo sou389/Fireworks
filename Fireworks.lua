@@ -1,4 +1,4 @@
---// Fireworks v5.1
+--// Fireworks v5.2
 local hui = gethui and gethui() or game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -63,55 +63,47 @@ local ScreenGui = Create("ScreenGui", {
     Parent = hui,
 })
 
+-- ★ 画面サイズを小さく調整（スマホ対応）
 local Main = Create("Frame", {
-    Size = UDim2.new(0, 280, 0, 560),
-    Position = UDim2.new(0.5, -140, 0.5, -280),
+    Size = UDim2.new(0, 170, 0, 340),
+    Position = UDim2.new(0.5, -85, 0.5, -170),
     BackgroundColor3 = Color3.fromRGB(12, 12, 20),
     BackgroundTransparency = 0.1, BorderSizePixel = 0, Parent = ScreenGui,
 })
-Create("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Main })
+Create("UICorner", { CornerRadius = UDim.new(0, 10), Parent = Main })
 local MainStroke = Create("UIStroke", { Color = RainbowColor(1), Thickness = 2, Parent = Main })
 table.insert(RainbowStrokes, { stroke = MainStroke, speed = 1 })
 
 local Header = Create("Frame", {
-    Size = UDim2.new(1, 0, 0, 44),
+    Size = UDim2.new(1, 0, 0, 32),
     BackgroundColor3 = Color3.fromRGB(22, 22, 38),
     BackgroundTransparency = 0.2, BorderSizePixel = 0, Parent = Main,
 })
-Create("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Header })
+Create("UICorner", { CornerRadius = UDim.new(0, 10), Parent = Header })
 
 Create("TextLabel", {
-    Text = "Fireworks", Size = UDim2.new(1, -100, 1, 0),
-    Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1,
+    Text = "Fireworks", Size = UDim2.new(1, -70, 1, 0),
+    Position = UDim2.new(0, 10, 0, 0), BackgroundTransparency = 1,
     TextColor3 = Color3.fromRGB(240, 240, 255), Font = Enum.Font.GothamBold,
-    TextSize = 19, TextXAlignment = Enum.TextXAlignment.Left, Parent = Header,
+    TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = Header,
 })
 
+-- 閉じるボタン
 local CloseBtn = Create("TextButton", {
-    Text = "×", Size = UDim2.new(0, 32, 0, 32),
-    Position = UDim2.new(1, -40, 0.5, -16),
+    Text = "×", Size = UDim2.new(0, 24, 0, 24),
+    Position = UDim2.new(1, -28, 0.5, -12),
     BackgroundColor3 = Color3.fromRGB(80, 40, 50),
     BackgroundTransparency = 0.2, BorderSizePixel = 0,
     AutoButtonColor = false, TextColor3 = Color3.fromRGB(255, 200, 200),
-    Font = Enum.Font.GothamBold, TextSize = 22, Parent = Header,
+    Font = Enum.Font.GothamBold, TextSize = 18, Parent = Header,
 })
-Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = CloseBtn })
+Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = CloseBtn })
 
 CloseBtn.MouseButton1Click:Connect(function()
     Main.Visible = false
 end)
 
-CloseBtn.MouseEnter:Connect(function()
-    TweenService:Create(CloseBtn, TweenInfo.new(0.15), {
-        BackgroundColor3 = Color3.fromRGB(200, 50, 70),
-    }):Play()
-end)
-CloseBtn.MouseLeave:Connect(function()
-    TweenService:Create(CloseBtn, TweenInfo.new(0.15), {
-        BackgroundColor3 = Color3.fromRGB(80, 40, 50),
-    }):Play()
-end)
-
+-- ドラッグ（長押し）
 local dragging, dragStart, startPos
 Header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
@@ -138,30 +130,31 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
+-- トグル
 local function MakeToggle(y, label, key, callback)
     local btn = Create("TextButton", {
-        Text = "", Size = UDim2.new(1, -24, 0, 38),
-        Position = UDim2.new(0, 12, 0, y),
+        Text = "", Size = UDim2.new(1, -16, 0, 24),
+        Position = UDim2.new(0, 8, 0, y),
         BackgroundColor3 = Color3.fromRGB(40, 40, 60),
         BackgroundTransparency = 0.15, BorderSizePixel = 0,
         AutoButtonColor = false, Parent = Main,
     })
-    Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = btn })
+    Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = btn })
     local st = Create("UIStroke", { Color = Color3.fromRGB(70, 70, 110), Thickness = 1, Parent = btn })
     table.insert(RainbowStrokes, { stroke = st, speed = 0.8 })
 
     Create("TextLabel", {
-        Text = label, Size = UDim2.new(1, -70, 1, 0),
-        Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1,
+        Text = label, Size = UDim2.new(1, -50, 1, 0),
+        Position = UDim2.new(0, 10, 0, 0), BackgroundTransparency = 1,
         TextColor3 = Color3.fromRGB(240, 240, 255), Font = Enum.Font.GothamMedium,
-        TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = btn,
+        TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Parent = btn,
     })
 
     local status = Create("TextLabel", {
-        Text = "OFF", Size = UDim2.new(0, 50, 1, 0),
-        Position = UDim2.new(1, -60, 0, 0), BackgroundTransparency = 1,
+        Text = "OFF", Size = UDim2.new(0, 40, 1, 0),
+        Position = UDim2.new(1, -45, 0, 0), BackgroundTransparency = 1,
         TextColor3 = Color3.fromRGB(150, 150, 190), Font = Enum.Font.GothamBold,
-        TextSize = 13, TextXAlignment = Enum.TextXAlignment.Right, Parent = btn,
+        TextSize = 10, TextXAlignment = Enum.TextXAlignment.Right, Parent = btn,
     })
 
     btn.MouseButton1Click:Connect(function()
@@ -178,26 +171,27 @@ local function MakeToggle(y, label, key, callback)
     end)
 end
 
+-- スライダー
 local function MakeSlider(y, label, min, max, default, key)
     local c = Create("Frame", {
-        Size = UDim2.new(1, -24, 0, 52),
-        Position = UDim2.new(0, 12, 0, y),
+        Size = UDim2.new(1, -16, 0, 34),
+        Position = UDim2.new(0, 8, 0, y),
         BackgroundColor3 = Color3.fromRGB(40, 40, 60),
         BackgroundTransparency = 0.15, BorderSizePixel = 0, Parent = Main,
     })
-    Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = c })
+    Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = c })
     local st = Create("UIStroke", { Color = Color3.fromRGB(70, 70, 110), Thickness = 1, Parent = c })
     table.insert(RainbowStrokes, { stroke = st, speed = 0.6 })
 
     local lbl = Create("TextLabel", {
-        Text = label .. ": " .. default, Size = UDim2.new(1, -20, 0, 20),
-        Position = UDim2.new(0, 14, 0, 4), BackgroundTransparency = 1,
+        Text = label .. ": " .. default, Size = UDim2.new(1, -16, 0, 14),
+        Position = UDim2.new(0, 10, 0, 2), BackgroundTransparency = 1,
         TextColor3 = Color3.fromRGB(240, 240, 255), Font = Enum.Font.GothamMedium,
-        TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, Parent = c,
+        TextSize = 10, TextXAlignment = Enum.TextXAlignment.Left, Parent = c,
     })
 
     local track = Create("Frame", {
-        Size = UDim2.new(1, -28, 0, 6), Position = UDim2.new(0, 14, 0, 34),
+        Size = UDim2.new(1, -20, 0, 5), Position = UDim2.new(0, 10, 0, 22),
         BackgroundColor3 = Color3.fromRGB(25, 25, 40),
         BorderSizePixel = 0, Parent = c,
     })
@@ -210,12 +204,12 @@ local function MakeSlider(y, label, min, max, default, key)
     Create("UICorner", { CornerRadius = UDim.new(0, 3), Parent = fill })
 
     local knob = Create("Frame", {
-        Size = UDim2.new(0, 14, 0, 14),
-        Position = UDim2.new((default - min) / (max - min), -7, 0.5, -7),
+        Size = UDim2.new(0, 11, 0, 11),
+        Position = UDim2.new((default - min) / (max - min), -5, 0.5, -5),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
         BorderSizePixel = 0, Parent = track,
     })
-    Create("UICorner", { CornerRadius = UDim.new(0, 7), Parent = knob })
+    Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = knob })
 
     task.spawn(function()
         while fill.Parent do
@@ -230,7 +224,7 @@ local function MakeSlider(y, label, min, max, default, key)
             (input.Position.X - track.AbsolutePosition.X) / math.max(track.AbsoluteSize.X, 1), 0, 1)
         local v = math.floor(min + (max - min) * rel)
         fill.Size = UDim2.new(rel, 0, 1, 0)
-        knob.Position = UDim2.new(rel, -7, 0.5, -7)
+        knob.Position = UDim2.new(rel, -5, 0.5, -5)
         lbl.Text = label .. ": " .. v
         State[key] = v
     end
@@ -252,6 +246,7 @@ local function MakeSlider(y, label, min, max, default, key)
     end)
 end
 
+-- ESP
 local ESP_Objects = {}
 
 local function CreateESP(player)
@@ -267,17 +262,17 @@ local function CreateESP(player)
         BackgroundTransparency = 1, BorderSizePixel = 0,
         Visible = false, Parent = sg,
     })
-    local st = Create("UIStroke", { Color = RainbowColor(1.5), Thickness = 2, Parent = box })
+    local st = Create("UIStroke", { Color = RainbowColor(1.5), Thickness = 1.5, Parent = box })
 
     local nameTag = Create("TextLabel", {
         BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(255, 255, 255),
-        Font = Enum.Font.GothamBold, TextSize = 13,
+        Font = Enum.Font.GothamBold, TextSize = 10,
         TextStrokeTransparency = 0, Visible = false, Parent = sg,
     })
 
     local distTag = Create("TextLabel", {
         BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(200, 200, 255),
-        Font = Enum.Font.Gotham, TextSize = 11,
+        Font = Enum.Font.Gotham, TextSize = 9,
         TextStrokeTransparency = 0, Visible = false, Parent = sg,
     })
 
@@ -326,13 +321,13 @@ RunService.RenderStepped:Connect(function()
                 local dist = (cam.CFrame.Position - hrp.Position).Magnitude
                 obj.nameTag.Visible = true
                 obj.nameTag.Text = player.Name
-                obj.nameTag.Position = UDim2.new(0, x, 0, y - 22)
-                obj.nameTag.Size = UDim2.new(0, width, 0, 16)
+                obj.nameTag.Position = UDim2.new(0, x, 0, y - 16)
+                obj.nameTag.Size = UDim2.new(0, width, 0, 12)
 
                 obj.distTag.Visible = true
                 obj.distTag.Text = string.format("[%d m]", math.floor(dist))
                 obj.distTag.Position = UDim2.new(0, x, 0, y + height + 2)
-                obj.distTag.Size = UDim2.new(0, width, 0, 14)
+                obj.distTag.Size = UDim2.new(0, width, 0, 10)
             else
                 obj.box.Visible = false
                 obj.nameTag.Visible = false
@@ -351,6 +346,7 @@ Players.PlayerAdded:Connect(function(p)
 end)
 Players.PlayerRemoving:Connect(RemoveESP)
 
+-- フライ
 local FlyVelocity, FlyGyro
 
 local function StartFly()
@@ -472,25 +468,25 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
-MakeToggle(56, "Infinite Jump", "InfiniteJump")
-MakeToggle(98, "Fly (Space/LCtrl)", "Fly", function(v)
+MakeToggle(38, "Infinite Jump", "InfiniteJump")
+MakeToggle(66, "Fly", "Fly", function(v)
     if v then StartFly() else StopFly() end
 end)
-MakeToggle(140, "Invisible", "Invisible")
-MakeToggle(182, "ESP (Rainbow Frame)", "ESP", function(v)
+MakeToggle(94, "Invisible", "Invisible")
+MakeToggle(122, "ESP", "ESP", function(v)
     if v then
         for _, p in pairs(Players:GetPlayers()) do CreateESP(p) end
     else
         for p, _ in pairs(ESP_Objects) do RemoveESP(p) end
     end
 end)
-MakeToggle(224, "God Mode", "GodMode")
-MakeToggle(266, "Noclip", "Noclip")
-MakeToggle(308, "Full Bright", "FullBright")
-MakeToggle(350, "Rainbow UI", "RainbowUI")
+MakeToggle(150, "God Mode", "GodMode")
+MakeToggle(178, "Noclip", "Noclip")
+MakeToggle(206, "Full Bright", "FullBright")
+MakeToggle(234, "Rainbow UI", "RainbowUI")
 
-MakeSlider(396, "WalkSpeed", 1, 300, State.WalkSpeed, "WalkSpeed")
-MakeSlider(452, "JumpPower", 1, 300, State.JumpPower, "JumpPower")
-MakeSlider(508, "FlySpeed", 10, 300, State.FlySpeed, "FlySpeed")
+MakeSlider(266, "WalkSpeed", 1, 300, State.WalkSpeed, "WalkSpeed")
+MakeSlider(302, "JumpPower", 1, 300, State.JumpPower, "JumpPower")
+MakeSlider(338, "FlySpeed", 10, 300, State.FlySpeed, "FlySpeed")
 
-print("[Fireworks v5.1] ロード完了")
+print("[Fireworks v5.2] Loaded")
