@@ -1,4 +1,4 @@
---// Fireworks v5.0
+--// Fireworks v5.1
 local hui = gethui and gethui() or game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -81,18 +81,36 @@ local Header = Create("Frame", {
 Create("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Header })
 
 Create("TextLabel", {
-    Text = "🎆 Fireworks", Size = UDim2.new(1, -20, 1, 0),
+    Text = "Fireworks", Size = UDim2.new(1, -100, 1, 0),
     Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1,
     TextColor3 = Color3.fromRGB(240, 240, 255), Font = Enum.Font.GothamBold,
     TextSize = 19, TextXAlignment = Enum.TextXAlignment.Left, Parent = Header,
 })
 
-Create("TextLabel", {
-    Text = "v5.0", Size = UDim2.new(0, 70, 1, 0),
-    Position = UDim2.new(1, -80, 0, 0), BackgroundTransparency = 1,
-    TextColor3 = Color3.fromRGB(150, 150, 190), Font = Enum.Font.Gotham,
-    TextSize = 12, TextXAlignment = Enum.TextXAlignment.Right, Parent = Header,
+local CloseBtn = Create("TextButton", {
+    Text = "×", Size = UDim2.new(0, 32, 0, 32),
+    Position = UDim2.new(1, -40, 0.5, -16),
+    BackgroundColor3 = Color3.fromRGB(80, 40, 50),
+    BackgroundTransparency = 0.2, BorderSizePixel = 0,
+    AutoButtonColor = false, TextColor3 = Color3.fromRGB(255, 200, 200),
+    Font = Enum.Font.GothamBold, TextSize = 22, Parent = Header,
 })
+Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = CloseBtn })
+
+CloseBtn.MouseButton1Click:Connect(function()
+    Main.Visible = false
+end)
+
+CloseBtn.MouseEnter:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.15), {
+        BackgroundColor3 = Color3.fromRGB(200, 50, 70),
+    }):Play()
+end)
+CloseBtn.MouseLeave:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.15), {
+        BackgroundColor3 = Color3.fromRGB(80, 40, 50),
+    }):Play()
+end)
 
 local dragging, dragStart, startPos
 Header.InputBegan:Connect(function(input)
@@ -459,7 +477,7 @@ MakeToggle(98, "Fly (Space/LCtrl)", "Fly", function(v)
     if v then StartFly() else StopFly() end
 end)
 MakeToggle(140, "Invisible", "Invisible")
-MakeToggle(182, "ESP (虹色枠)", "ESP", function(v)
+MakeToggle(182, "ESP (Rainbow Frame)", "ESP", function(v)
     if v then
         for _, p in pairs(Players:GetPlayers()) do CreateESP(p) end
     else
@@ -475,4 +493,4 @@ MakeSlider(396, "WalkSpeed", 1, 300, State.WalkSpeed, "WalkSpeed")
 MakeSlider(452, "JumpPower", 1, 300, State.JumpPower, "JumpPower")
 MakeSlider(508, "FlySpeed", 10, 300, State.FlySpeed, "FlySpeed")
 
-print("[Fireworks v5.0] ロード完了 🎆")
+print("[Fireworks v5.1] ロード完了")
