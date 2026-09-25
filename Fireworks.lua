@@ -1,4 +1,4 @@
---// Fireworks v8.2
+--// Fireworks v8.3
 local hui = gethui and gethui() or game:GetService("CoreGui")
 local P=game:GetService("Players") local RS=game:GetService("RunService")
 local TW=game:GetService("TweenService") local UIS=game:GetService("UserInputService")
@@ -9,23 +9,27 @@ local Lg="JP"
 local L={
 JP={p="プレイヤー",t="テレポート",b="建築",v="見た目",m="その他",
 ij="無限ジャンプ",esp="ESP",gm="ゴッドモード",nc="ノークリップ",
-fb="フルブライト",rb="虹色UI",sp="移動速度",jp="ジャンプ力",
+fb="フルブライト",rb="虹色UI",sp="移動速度",
+ww="壁歩き",li="ライト",
 sv="位置を保存",tp="保存位置に移動",tpP="プレイヤーに移動",sel="プレイヤー選択",
 one="パーツ1個",wl="壁",bx="箱",cs="城",tw="タワー",st="階段",ps="パーツサイズ",
 rj="再入場",sh="サーバー移動",lang="言語",saved="保存",none="なし",ok="OK",
-title="Fireworks v8.2"},
+title="Fireworks v8.3",loading="読み込み中"},
 EN={p="Player",t="Teleport",b="Build",v="Visual",m="Misc",
 ij="Infinite Jump",esp="ESP",gm="God Mode",nc="Noclip",
-fb="Full Bright",rb="Rainbow UI",sp="WalkSpeed",jp="JumpPower",
+fb="Full Bright",rb="Rainbow UI",sp="WalkSpeed",
+ww="Wall Walk",li="Light",
 sv="Save Position",tp="TP to Saved",tpP="TP to Player",sel="Select Player",
 one="Place Part",wl="Wall",bx="Box",cs="Castle",tw="Tower",st="Stairs",ps="Part Size",
 rj="Rejoin",sh="Server Hop",lang="Language",saved="Saved",none="None",ok="OK",
-title="Fireworks v8.2"}}
+title="Fireworks v8.3",loading="Loading"}}
 local function T(k) return L[Lg][k] or k end
 
-local S={WalkSpeed=16,JumpPower=50,InfiniteJump=false,ESP=false,GodMode=false,
-Noclip=false,FullBright=false,RainbowUI=true,BuildSize=5}
+local S={WalkSpeed=16,InfiniteJump=false,ESP=false,GodMode=false,
+Noclip=false,FullBright=false,RainbowUI=true,BuildSize=5,
+WallWalk=false,Light=false}
 local Sp=nil SelP=nil EO={} CS={} TR={}
+local LightObj=nil
 local C1=Color3.fromRGB
 local Th={Bg=C1(15,15,25),Cd=C1(24,24,38),Sl=C1(40,40,60),
 Tx=C1(245,245,255),Sb=C1(140,140,180),A1=C1(140,90,255),A2=C1(80,200,255),
@@ -53,6 +57,27 @@ task.spawn(function()
 end)
 
 local SG=C("ScreenGui",{Name="FireworksUI",ResetOnSpawn=false,IgnoreGuiInset=true,ZIndexBehavior=Enum.ZIndexBehavior.Sibling,Parent=hui})
+
+-- ★ ロード画面
+local LS=C("Frame",{Size=UDim2.new(1,0,1,0),BackgroundColor3=C1(10,10,20),BorderSizePixel=0,ZIndex=100,Parent=SG})
+local LST=C("TextLabel",{Text=T("loading").." Fireworks v8.3",Size=UDim2.new(1,0,0,40),Position=UDim2.new(0,0,0.4,-40),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=22,Parent=LS})
+local LBBg=C("Frame",{Size=UDim2.new(0.6,0,0,20),Position=UDim2.new(0.2,0,0.5,10),BackgroundColor3=C1(30,30,50),BorderSizePixel=0,Parent=LS})
+C("UICorner",{CornerRadius=UDim.new(1,0),Parent=LBBg})
+local LBFill=C("Frame",{Size=UDim2.new(0,0,1,0),BackgroundColor3=Th.A1,BorderSizePixel=0,Parent=LBBg})
+C("UICorner",{CornerRadius=UDim.new(1,0),Parent=LBFill})
+C("UIGradient",{Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Th.A1),ColorSequenceKeypoint.new(0.5,Th.A2),ColorSequenceKeypoint.new(1,Th.A3)}),Parent=LBFill})
+local LBP=C("TextLabel",{Text="0%",Size=UDim2.new(1,0,0,20),Position=UDim2.new(0,0,0.5,35),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=14,Parent=LS})
+
+task.spawn(function()
+    for i=0,100 do
+        LBFill.Size=UDim2.new(i/100,0,1,0)
+        LBP.Text=i.."%"
+        task.wait(0.02)
+    end
+    task.wait(0.3)
+    LS:Destroy()
+end)
+
 local TB=C("TextButton",{Text="FW",Size=UDim2.new(0,60,0,26),Position=UDim2.new(0.5,-30,0,5),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=12,Parent=SG})
 C("UICorner",{CornerRadius=UDim.new(0,13),Parent=TB})
 C("UIStroke",{Color=Th.A1,Thickness=1.5,Parent=TB})
@@ -191,15 +216,33 @@ end)
 P.PlayerAdded:Connect(function(p) if S.ESP then task.wait(1) CE(p) end end)
 P.PlayerRemoving:Connect(RE)
 
+-- Player タブ（ジャンプ力削除、壁歩き＆ライト追加）
 local pt=Tb["p"]
 MK(pt,4,"ij","InfiniteJump")
 MK(pt,34,"esp","ESP",function(v) if v then for _,p in pairs(P:GetPlayers()) do CE(p) end else for p,_ in pairs(EO) do RE(p) end end end)
 MK(pt,64,"gm","GodMode")
 MK(pt,94,"nc","Noclip")
 MK(pt,124,"fb","FullBright")
-MS(pt,160,"sp",1,300,S.WalkSpeed,"WalkSpeed")
-MS(pt,196,"jp",1,300,S.JumpPower,"JumpPower")
+MK(pt,154,"ww","WallWalk")
+MK(pt,184,"li","Light",function(v)
+    if v then
+        local c=LP.Character
+        if c then
+            if not LightObj then
+                LightObj=Instance.new("PointLight")
+                LightObj.Brightness=5
+                LightObj.Range=60
+                LightObj.Color=C1(255,255,255)
+            end
+            LightObj.Parent=c:FindFirstChild("HumanoidRootPart") or c.PrimaryPart
+        end
+    else
+        if LightObj then LightObj.Parent=nil end
+    end
+end)
+MS(pt,220,"sp",1,300,S.WalkSpeed,"WalkSpeed")
 
+-- Teleport
 local tt=Tb["t"]
 local tpI=C("TextLabel",{Text="",Size=UDim2.new(1,-16,0,14),Position=UDim2.new(0,8,0,4),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.Gotham,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=tt})
 AB(tt,24,"sv",function()
@@ -326,6 +369,40 @@ BJP.MouseButton1Click:Connect(function() Lg="JP" BJP.BackgroundColor3=Th.Sl BJP.
 BEN.MouseButton1Click:Connect(function() Lg="EN" BEN.BackgroundColor3=Th.Sl BEN.TextColor3=Th.Tx BJP.BackgroundColor3=Th.Cd BJP.TextColor3=Th.Sb UA() end)
 UA()
 
+-- ライトの追従
+task.spawn(function()
+    while task.wait(0.3) do
+        if S.Light and LightObj then
+            local h=HM()
+            local c=LP.Character
+            if c then
+                local hrp=c:FindFirstChild("HumanoidRootPart") or c.PrimaryPart
+                if hrp and LightObj.Parent~=hrp then LightObj.Parent=hrp end
+            end
+        end
+    end
+end)
+
+-- 壁歩き
+local WWConn
+task.spawn(function()
+    while task.wait(0.2) do
+        if S.WallWalk then
+            if not WWConn then
+                WWConn=RS.Heartbeat:Connect(function()
+                    local c=LP.Character if not c then return end
+                    local h=HM() if not h then return end
+                    if h.MoveDirection.Magnitude>0 then
+                        h:ChangeState(Enum.HumanoidStateType.GettingUp)
+                    end
+                end)
+            end
+        else
+            if WWConn then WWConn:Disconnect() WWConn=nil end
+        end
+    end
+end)
+
 task.spawn(function() while task.wait(0.5) do if S.GodMode then local h=HM() if h then h.Health=h.MaxHealth end end end end)
 local NC
 task.spawn(function()
@@ -346,11 +423,10 @@ task.spawn(function()
         local h=HM()
         if h then
             if h.WalkSpeed~=S.WalkSpeed then h.WalkSpeed=S.WalkSpeed end
-            if h.JumpPower~=S.JumpPower then h.JumpPower=S.JumpPower end
         end
     end
 end)
 UIS.JumpRequest:Connect(function() if S.InfiniteJump then local h=HM() if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end end end)
 
 Sel("p")
-print("[Fireworks v8.2] Loaded")
+print("[Fireworks v8.3] Loaded")
