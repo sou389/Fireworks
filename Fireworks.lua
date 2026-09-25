@@ -1,4 +1,4 @@
---// Fireworks v5.3
+--// Fireworks v6.0 - Modern Design
 local hui = gethui and gethui() or game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -11,6 +11,21 @@ local State = {
     WalkSpeed = 16, JumpPower = 50, InfiniteJump = false,
     Fly = false, FlySpeed = 60, Invisible = false, ESP = false,
     GodMode = false, Noclip = false, FullBright = false, RainbowUI = true,
+}
+
+local FlyDir = { Forward = false, Back = false, Left = false, Right = false, Up = false, Down = false }
+
+local Theme = {
+    Bg = Color3.fromRGB(15, 15, 25),
+    Card = Color3.fromRGB(24, 24, 38),
+    Card2 = Color3.fromRGB(32, 32, 52),
+    Text = Color3.fromRGB(245, 245, 255),
+    Sub = Color3.fromRGB(140, 140, 180),
+    Accent1 = Color3.fromRGB(140, 90, 255),
+    Accent2 = Color3.fromRGB(80, 200, 255),
+    Accent3 = Color3.fromRGB(255, 90, 180),
+    On = Color3.fromRGB(80, 220, 140),
+    Off = Color3.fromRGB(60, 60, 90),
 }
 
 local function Create(class, props)
@@ -63,67 +78,134 @@ local ScreenGui = Create("ScreenGui", {
     Parent = hui,
 })
 
--- ★ 上部の「Fireworks」ボタン
 local TopBtn = Create("TextButton", {
-    Text = "Fireworks",
-    Size = UDim2.new(0, 100, 0, 28),
-    Position = UDim2.new(0.5, -50, 0, 5),
-    BackgroundColor3 = Color3.fromRGB(20, 20, 35),
-    BackgroundTransparency = 0.2,
+    Text = "",
+    Size = UDim2.new(0, 120, 0, 32),
+    Position = UDim2.new(0.5, -60, 0, 8),
+    BackgroundColor3 = Theme.Card,
     BorderSizePixel = 0,
     AutoButtonColor = false,
-    TextColor3 = Color3.fromRGB(240, 240, 255),
-    Font = Enum.Font.GothamBold,
-    TextSize = 13,
     Parent = ScreenGui,
 })
-Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = TopBtn })
-local TopStroke = Create("UIStroke", { Color = RainbowColor(1), Thickness = 1.5, Parent = TopBtn })
-table.insert(RainbowStrokes, { stroke = TopStroke, speed = 1 })
+Create("UICorner", { CornerRadius = UDim.new(0, 16), Parent = TopBtn })
+local TopStroke = Create("UIStroke", {
+    Color = Theme.Accent1, Thickness = 2, Parent = TopBtn
+})
+Create("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Accent1),
+        ColorSequenceKeypoint.new(0.5, Theme.Accent2),
+        ColorSequenceKeypoint.new(1, Theme.Accent3),
+    }),
+    Rotation = 0,
+    Parent = TopStroke,
+})
+
+local TopLabel = Create("TextLabel", {
+    Text = "Fireworks",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    TextColor3 = Theme.Text,
+    Font = Enum.Font.GothamBold,
+    TextSize = 14,
+    Parent = TopBtn,
+})
+Create("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Accent2),
+        ColorSequenceKeypoint.new(0.5, Theme.Text),
+        ColorSequenceKeypoint.new(1, Theme.Accent3),
+    }),
+    Parent = TopLabel,
+})
 
 local Main = Create("Frame", {
-    Size = UDim2.new(0, 170, 0, 340),
-    Position = UDim2.new(0.5, -85, 0.5, -170),
-    BackgroundColor3 = Color3.fromRGB(12, 12, 20),
-    BackgroundTransparency = 0.1, BorderSizePixel = 0,
+    Size = UDim2.new(0, 200, 0, 480),
+    Position = UDim2.new(0.5, -100, 0.5, -240),
+    BackgroundColor3 = Theme.Bg,
+    BackgroundTransparency = 0.05,
+    BorderSizePixel = 0,
     Visible = false,
     Parent = ScreenGui,
 })
-Create("UICorner", { CornerRadius = UDim.new(0, 10), Parent = Main })
-local MainStroke = Create("UIStroke", { Color = RainbowColor(1), Thickness = 2, Parent = Main })
-table.insert(RainbowStrokes, { stroke = MainStroke, speed = 1 })
+Create("UICorner", { CornerRadius = UDim.new(0, 16), Parent = Main })
+local MainStroke = Create("UIStroke", { Color = Theme.Accent1, Thickness = 2, Parent = Main })
+Create("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Accent1),
+        ColorSequenceKeypoint.new(0.5, Theme.Accent2),
+        ColorSequenceKeypoint.new(1, Theme.Accent3),
+    }),
+    Rotation = 45,
+    Parent = MainStroke,
+})
 
--- ★ 上部ボタンをタップでメインウィンドウ開閉
+local BgGrad = Create("Frame", {
+    Size = UDim2.new(1, 0, 0, 60),
+    BackgroundColor3 = Theme.Card,
+    BackgroundTransparency = 0.3,
+    BorderSizePixel = 0,
+    Parent = Main,
+})
+Create("UICorner", { CornerRadius = UDim.new(0, 16), Parent = BgGrad })
+
 TopBtn.MouseButton1Click:Connect(function()
     Main.Visible = not Main.Visible
 end)
 
 local Header = Create("Frame", {
-    Size = UDim2.new(1, 0, 0, 32),
-    BackgroundColor3 = Color3.fromRGB(22, 22, 38),
-    BackgroundTransparency = 0.2, BorderSizePixel = 0, Parent = Main,
+    Size = UDim2.new(1, 0, 0, 40),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    Parent = Main,
 })
-Create("UICorner", { CornerRadius = UDim.new(0, 10), Parent = Header })
 
-Create("TextLabel", {
-    Text = "Fireworks", Size = UDim2.new(1, -70, 1, 0),
-    Position = UDim2.new(0, 10, 0, 0), BackgroundTransparency = 1,
-    TextColor3 = Color3.fromRGB(240, 240, 255), Font = Enum.Font.GothamBold,
-    TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = Header,
+local HeaderTitle = Create("TextLabel", {
+    Text = "Fireworks",
+    Size = UDim2.new(1, -60, 1, 0),
+    Position = UDim2.new(0, 16, 0, 0),
+    BackgroundTransparency = 1,
+    TextColor3 = Theme.Text,
+    Font = Enum.Font.GothamBold,
+    TextSize = 15,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = Header,
+})
+Create("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Accent1),
+        ColorSequenceKeypoint.new(0.5, Theme.Accent2),
+        ColorSequenceKeypoint.new(1, Theme.Accent3),
+    }),
+    Parent = HeaderTitle,
 })
 
 local CloseBtn = Create("TextButton", {
-    Text = "×", Size = UDim2.new(0, 24, 0, 24),
-    Position = UDim2.new(1, -28, 0.5, -12),
-    BackgroundColor3 = Color3.fromRGB(80, 40, 50),
-    BackgroundTransparency = 0.2, BorderSizePixel = 0,
-    AutoButtonColor = false, TextColor3 = Color3.fromRGB(255, 200, 200),
-    Font = Enum.Font.GothamBold, TextSize = 18, Parent = Header,
+    Text = "×",
+    Size = UDim2.new(0, 28, 0, 28),
+    Position = UDim2.new(1, -36, 0.5, -14),
+    BackgroundColor3 = Color3.fromRGB(60, 30, 45),
+    BorderSizePixel = 0,
+    AutoButtonColor = false,
+    TextColor3 = Color3.fromRGB(255, 180, 200),
+    Font = Enum.Font.GothamBold,
+    TextSize = 18,
+    Parent = Header,
 })
-Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = CloseBtn })
+Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = CloseBtn })
 
 CloseBtn.MouseButton1Click:Connect(function()
     Main.Visible = false
+end)
+CloseBtn.MouseEnter:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.15), {
+        BackgroundColor3 = Color3.fromRGB(200, 50, 70),
+    }):Play()
+end)
+CloseBtn.MouseLeave:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.15), {
+        BackgroundColor3 = Color3.fromRGB(60, 30, 45),
+    }):Play()
 end)
 
 local dragging, dragStart, startPos
@@ -154,37 +236,93 @@ end)
 
 local function MakeToggle(y, label, key, callback)
     local btn = Create("TextButton", {
-        Text = "", Size = UDim2.new(1, -16, 0, 24),
-        Position = UDim2.new(0, 8, 0, y),
-        BackgroundColor3 = Color3.fromRGB(40, 40, 60),
-        BackgroundTransparency = 0.15, BorderSizePixel = 0,
-        AutoButtonColor = false, Parent = Main,
+        Text = "",
+        Size = UDim2.new(1, -20, 0, 30),
+        Position = UDim2.new(0, 10, 0, y),
+        BackgroundColor3 = Theme.Card,
+        BackgroundTransparency = 0.1,
+        BorderSizePixel = 0,
+        AutoButtonColor = false,
+        Parent = Main,
     })
-    Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = btn })
-    local st = Create("UIStroke", { Color = Color3.fromRGB(70, 70, 110), Thickness = 1, Parent = btn })
-    table.insert(RainbowStrokes, { stroke = st, speed = 0.8 })
+    Create("UICorner", { CornerRadius = UDim.new(0, 10), Parent = btn })
+    local st = Create("UIStroke", {
+        Color = Theme.Off, Thickness = 1.5, Transparency = 0.4, Parent = btn
+    })
+
+    local bar = Create("Frame", {
+        Size = UDim2.new(0, 3, 0.6, 0),
+        Position = UDim2.new(0, 6, 0.2, 0),
+        BackgroundColor3 = Theme.Accent1,
+        BorderSizePixel = 0,
+        Parent = btn,
+    })
+    Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = bar })
+    Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Theme.Accent1),
+            ColorSequenceKeypoint.new(1, Theme.Accent2),
+        }),
+        Rotation = 90,
+        Parent = bar,
+    })
 
     Create("TextLabel", {
-        Text = label, Size = UDim2.new(1, -50, 1, 0),
-        Position = UDim2.new(0, 10, 0, 0), BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(240, 240, 255), Font = Enum.Font.GothamMedium,
-        TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Parent = btn,
+        Text = label,
+        Size = UDim2.new(1, -60, 1, 0),
+        Position = UDim2.new(0, 16, 0, 0),
+        BackgroundTransparency = 1,
+        TextColor3 = Theme.Text,
+        Font = Enum.Font.GothamMedium,
+        TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = btn,
     })
 
     local status = Create("TextLabel", {
-        Text = "OFF", Size = UDim2.new(0, 40, 1, 0),
-        Position = UDim2.new(1, -45, 0, 0), BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(150, 150, 190), Font = Enum.Font.GothamBold,
-        TextSize = 10, TextXAlignment = Enum.TextXAlignment.Right, Parent = btn,
+        Text = "OFF",
+        Size = UDim2.new(0, 40, 1, 0),
+        Position = UDim2.new(1, -46, 0, 0),
+        BackgroundTransparency = 1,
+        TextColor3 = Theme.Sub,
+        Font = Enum.Font.GothamBold,
+        TextSize = 10,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        Parent = btn,
     })
+
+    local dot = Create("Frame", {
+        Size = UDim2.new(0, 8, 0, 8),
+        Position = UDim2.new(1, -12, 0.5, -4),
+        BackgroundColor3 = Theme.Off,
+        BorderSizePixel = 0,
+        Parent = btn,
+    })
+    Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = dot })
 
     btn.MouseButton1Click:Connect(function()
         State[key] = not State[key]
-        status.Text = State[key] and "ON" or "OFF"
-        status.TextColor3 = State[key] and Color3.fromRGB(100, 255, 180) or Color3.fromRGB(150, 150, 190)
-        TweenService:Create(btn, TweenInfo.new(0.15), {
-            BackgroundColor3 = State[key] and Color3.fromRGB(60, 120, 90) or Color3.fromRGB(40, 40, 60)
-        }):Play()
+        if State[key] then
+            status.Text = "ON"
+            status.TextColor3 = Theme.On
+            dot.BackgroundColor3 = Theme.On
+            TweenService:Create(btn, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(30, 60, 55)
+            }):Play()
+            TweenService:Create(st, TweenInfo.new(0.2), {
+                Color = Theme.On, Transparency = 0
+            }):Play()
+        else
+            status.Text = "OFF"
+            status.TextColor3 = Theme.Sub
+            dot.BackgroundColor3 = Theme.Off
+            TweenService:Create(btn, TweenInfo.new(0.2), {
+                BackgroundColor3 = Theme.Card
+            }):Play()
+            TweenService:Create(st, TweenInfo.new(0.2), {
+                Color = Theme.Off, Transparency = 0.4
+            }):Play()
+        end
         if callback then
             local ok, err = pcall(callback, State[key])
             if not ok then warn("[Fireworks]", err) end
@@ -194,49 +332,62 @@ end
 
 local function MakeSlider(y, label, min, max, default, key)
     local c = Create("Frame", {
-        Size = UDim2.new(1, -16, 0, 34),
-        Position = UDim2.new(0, 8, 0, y),
-        BackgroundColor3 = Color3.fromRGB(40, 40, 60),
-        BackgroundTransparency = 0.15, BorderSizePixel = 0, Parent = Main,
+        Size = UDim2.new(1, -20, 0, 38),
+        Position = UDim2.new(0, 10, 0, y),
+        BackgroundColor3 = Theme.Card,
+        BackgroundTransparency = 0.1,
+        BorderSizePixel = 0,
+        Parent = Main,
     })
-    Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = c })
-    local st = Create("UIStroke", { Color = Color3.fromRGB(70, 70, 110), Thickness = 1, Parent = c })
-    table.insert(RainbowStrokes, { stroke = st, speed = 0.6 })
+    Create("UICorner", { CornerRadius = UDim.new(0, 10), Parent = c })
+    Create("UIStroke", { Color = Theme.Off, Thickness = 1.5, Transparency = 0.4, Parent = c })
 
     local lbl = Create("TextLabel", {
-        Text = label .. ": " .. default, Size = UDim2.new(1, -16, 0, 14),
-        Position = UDim2.new(0, 10, 0, 2), BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(240, 240, 255), Font = Enum.Font.GothamMedium,
-        TextSize = 10, TextXAlignment = Enum.TextXAlignment.Left, Parent = c,
+        Text = label .. ": " .. default,
+        Size = UDim2.new(1, -20, 0, 14),
+        Position = UDim2.new(0, 12, 0, 3),
+        BackgroundTransparency = 1,
+        TextColor3 = Theme.Text,
+        Font = Enum.Font.GothamMedium,
+        TextSize = 11,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = c,
     })
 
     local track = Create("Frame", {
-        Size = UDim2.new(1, -20, 0, 5), Position = UDim2.new(0, 10, 0, 22),
-        BackgroundColor3 = Color3.fromRGB(25, 25, 40),
-        BorderSizePixel = 0, Parent = c,
+        Size = UDim2.new(1, -24, 0, 4),
+        Position = UDim2.new(0, 12, 0, 26),
+        BackgroundColor3 = Color3.fromRGB(20, 20, 32),
+        BorderSizePixel = 0,
+        Parent = c,
     })
-    Create("UICorner", { CornerRadius = UDim.new(0, 3), Parent = track })
+    Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = track })
 
     local fill = Create("Frame", {
         Size = UDim2.new((default - min) / (max - min), 0, 1, 0),
-        BackgroundColor3 = RainbowColor(1), BorderSizePixel = 0, Parent = track,
+        BackgroundColor3 = Theme.Accent1,
+        BorderSizePixel = 0,
+        Parent = track,
     })
-    Create("UICorner", { CornerRadius = UDim.new(0, 3), Parent = fill })
+    Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = fill })
+    Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Theme.Accent1),
+            ColorSequenceKeypoint.new(0.5, Theme.Accent2),
+            ColorSequenceKeypoint.new(1, Theme.Accent3),
+        }),
+        Parent = fill,
+    })
 
     local knob = Create("Frame", {
-        Size = UDim2.new(0, 11, 0, 11),
-        Position = UDim2.new((default - min) / (max - min), -5, 0.5, -5),
+        Size = UDim2.new(0, 12, 0, 12),
+        Position = UDim2.new((default - min) / (max - min), -6, 0.5, -6),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0, Parent = track,
+        BorderSizePixel = 0,
+        Parent = track,
     })
-    Create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = knob })
-
-    task.spawn(function()
-        while fill.Parent do
-            fill.BackgroundColor3 = RainbowColor(1)
-            task.wait(0.05)
-        end
-    end)
+    Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = knob })
+    Create("UIStroke", { Color = Theme.Accent1, Thickness = 2, Parent = knob })
 
     local drag = false
     local function update(input)
@@ -244,7 +395,7 @@ local function MakeSlider(y, label, min, max, default, key)
             (input.Position.X - track.AbsolutePosition.X) / math.max(track.AbsoluteSize.X, 1), 0, 1)
         local v = math.floor(min + (max - min) * rel)
         fill.Size = UDim2.new(rel, 0, 1, 0)
-        knob.Position = UDim2.new(rel, -5, 0.5, -5)
+        knob.Position = UDim2.new(rel, -6, 0.5, -6)
         lbl.Text = label .. ": " .. v
         State[key] = v
     end
@@ -266,6 +417,69 @@ local function MakeSlider(y, label, min, max, default, key)
     end)
 end
 
+local FlyPad = Create("Frame", {
+    Size = UDim2.new(0, 200, 0, 200),
+    Position = UDim2.new(1, -210, 0.5, -100),
+    BackgroundColor3 = Theme.Bg,
+    BackgroundTransparency = 0.15,
+    BorderSizePixel = 0,
+    Visible = false,
+    Parent = ScreenGui,
+})
+Create("UICorner", { CornerRadius = UDim.new(0, 16), Parent = FlyPad })
+local FlyStroke = Create("UIStroke", { Color = Theme.Accent1, Thickness = 2, Parent = FlyPad })
+Create("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Accent1),
+        ColorSequenceKeypoint.new(0.5, Theme.Accent2),
+        ColorSequenceKeypoint.new(1, Theme.Accent3),
+    }),
+    Rotation = 45,
+    Parent = FlyStroke,
+})
+
+local function MakeFlyBtn(text, pos, dir)
+    local b = Create("TextButton", {
+        Text = text, Size = UDim2.new(0, 55, 0, 55),
+        Position = pos,
+        BackgroundColor3 = Theme.Card,
+        BorderSizePixel = 0,
+        AutoButtonColor = false,
+        TextColor3 = Theme.Text,
+        Font = Enum.Font.GothamBold, TextSize = 22,
+        Parent = FlyPad,
+    })
+    Create("UICorner", { CornerRadius = UDim.new(0, 12), Parent = b })
+    Create("UIStroke", { Color = Theme.Accent1, Thickness = 1.5, Transparency = 0.3, Parent = b })
+
+    b.MouseButton1Down:Connect(function()
+        FlyDir[dir] = true
+        b.BackgroundColor3 = Color3.fromRGB(60, 120, 100)
+        TweenService:Create(b, TweenInfo.new(0.1), {
+            TextColor3 = Color3.fromRGB(150, 255, 200),
+        }):Play()
+    end)
+    b.MouseButton1Up:Connect(function()
+        FlyDir[dir] = false
+        b.BackgroundColor3 = Theme.Card
+        TweenService:Create(b, TweenInfo.new(0.1), {
+            TextColor3 = Theme.Text,
+        }):Play()
+    end)
+    b.MouseLeave:Connect(function()
+        FlyDir[dir] = false
+        b.BackgroundColor3 = Theme.Card
+        b.TextColor3 = Theme.Text
+    end)
+end
+
+MakeFlyBtn("↑", UDim2.new(0.5, -27, 0, 10), "Forward")
+MakeFlyBtn("↓", UDim2.new(0.5, -27, 1, -65), "Back")
+MakeFlyBtn("←", UDim2.new(0, 10, 0.5, -27), "Left")
+MakeFlyBtn("→", UDim2.new(1, -65, 0.5, -27), "Right")
+MakeFlyBtn("U", UDim2.new(1, -65, 0, 10), "Up")
+MakeFlyBtn("D", UDim2.new(0, 10, 1, -65), "Down")
+
 local ESP_Objects = {}
 
 local function CreateESP(player)
@@ -281,7 +495,7 @@ local function CreateESP(player)
         BackgroundTransparency = 1, BorderSizePixel = 0,
         Visible = false, Parent = sg,
     })
-    local st = Create("UIStroke", { Color = RainbowColor(1.5), Thickness = 1.5, Parent = box })
+    local st = Create("UIStroke", { Color = RainbowColor(1.5), Thickness = 2, Parent = box })
 
     local nameTag = Create("TextLabel", {
         BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(255, 255, 255),
@@ -365,146 +579,16 @@ Players.PlayerAdded:Connect(function(p)
 end)
 Players.PlayerRemoving:Connect(RemoveESP)
 
-local FlyVelocity, FlyGyro
-
-local function StartFly()
-    local hrp = GetHRP()
-    if not hrp then return end
-    FlyVelocity = Instance.new("BodyVelocity")
-    FlyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-    FlyVelocity.Velocity = Vector3.zero
-    FlyVelocity.Parent = hrp
-
-    FlyGyro = Instance.new("BodyGyro")
-    FlyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-    FlyGyro.P = 1000
-    FlyGyro.D = 50
-    FlyGyro.CFrame = hrp.CFrame
-    FlyGyro.Parent = hrp
-
-    local hum = GetHumanoid()
-    if hum then hum.PlatformStand = true end
-end
-
-local function StopFly()
-    if FlyVelocity then FlyVelocity:Destroy() FlyVelocity = nil end
-    if FlyGyro then FlyGyro:Destroy() FlyGyro = nil end
-    local hum = GetHumanoid()
-    if hum then hum.PlatformStand = false end
-end
-
 task.spawn(function()
-    while task.wait(0.03) do
-        if State.Fly and FlyVelocity and FlyGyro then
+    while task.wait(0.02) do
+        if State.Fly then
             local hrp = GetHRP()
             local cam = workspace.CurrentCamera
             if hrp and cam then
                 local move = Vector3.zero
-                local speed = State.FlySpeed
+                local speed = State.FlySpeed / 30
 
                 if UserInputService:IsKeyDown(Enum.KeyCode.W) then move = move + cam.CFrame.LookVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.S) then move = move - cam.CFrame.LookVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.A) then move = move - cam.CFrame.RightVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.D) then move = move + cam.CFrame.RightVector end
-                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0, 1, 0) end
-                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then move = move - Vector3.new(0, 1, 0) end
-
-                FlyVelocity.Velocity = move.Magnitude > 0 and move.Unit * speed or Vector3.zero
-                FlyGyro.CFrame = cam.CFrame
-            end
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.1) do
-        if State.Invisible then
-            local char = LocalPlayer.Character
-            if char then
-                for _, part in pairs(char:GetDescendants()) do
-                    if part:IsA("BasePart") then part.LocalTransparencyModifier = 0.9 end
-                end
-            end
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.5) do
-        if State.GodMode then
-            local hum = GetHumanoid()
-            if hum then hum.Health = hum.MaxHealth end
-        end
-    end
-end)
-
-local NoclipConn
-task.spawn(function()
-    while task.wait(0.2) do
-        if State.Noclip then
-            if not NoclipConn then
-                NoclipConn = RunService.Stepped:Connect(function()
-                    local char = LocalPlayer.Character
-                    if not char then return end
-                    for _, part in pairs(char:GetDescendants()) do
-                        if part:IsA("BasePart") then part.CanCollide = false end
-                    end
-                end)
-            end
-        else
-            if NoclipConn then NoclipConn:Disconnect() NoclipConn = nil end
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.5) do
-        if State.FullBright then
-            Lighting.Brightness = 3
-            Lighting.ClockTime = 12
-            Lighting.Ambient = Color3.fromRGB(178, 178, 178)
-            Lighting.OutdoorAmbient = Color3.fromRGB(178, 178, 178)
-            Lighting.FogEnd = 100000
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.1) do
-        local hum = GetHumanoid()
-        if hum then
-            if hum.WalkSpeed ~= State.WalkSpeed then hum.WalkSpeed = State.WalkSpeed end
-            if hum.JumpPower ~= State.JumpPower then hum.JumpPower = State.JumpPower end
-        end
-    end
-end)
-
-UserInputService.JumpRequest:Connect(function()
-    if State.InfiniteJump then
-        local hum = GetHumanoid()
-        if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
-    end
-end)
-
-MakeToggle(38, "Infinite Jump", "InfiniteJump")
-MakeToggle(66, "Fly", "Fly", function(v)
-    if v then StartFly() else StopFly() end
-end)
-MakeToggle(94, "Invisible", "Invisible")
-MakeToggle(122, "ESP", "ESP", function(v)
-    if v then
-        for _, p in pairs(Players:GetPlayers()) do CreateESP(p) end
-    else
-        for p, _ in pairs(ESP_Objects) do RemoveESP(p) end
-    end
-end)
-MakeToggle(150, "God Mode", "GodMode")
-MakeToggle(178, "Noclip", "Noclip")
-MakeToggle(206, "Full Bright", "FullBright")
-MakeToggle(234, "Rainbow UI", "RainbowUI")
-
-MakeSlider(266, "WalkSpeed", 1, 300, State.WalkSpeed, "WalkSpeed")
-MakeSlider(302, "JumpPower", 1, 300, State.JumpPower, "JumpPower")
-MakeSlider(338, "FlySpeed", 10, 300, State.FlySpeed, "FlySpeed")
-
-print("[Fireworks v5.3] Loaded")
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then move = move + cam.CFrame.Ri
