@@ -116,7 +116,8 @@ for i,k in ipairs(TbO) do
     b.MouseButton1Click:Connect(function() Sel(k) end)
     TbB[k]=b
     Tb[k]=C("ScrollingFrame",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.new(0,0,0,500),ScrollBarThickness=3,Visible=false,Parent=CA})
-endlocal function MK(par,y,lbl,key,cb)
+end
+local function MK(par,y,lbl,key,cb)
     local b=C("TextButton",{Text="",Size=UDim2.new(1,-16,0,26),Position=UDim2.new(0,8,0,y),BackgroundColor3=Th.Cd,BackgroundTransparency=0.1,BorderSizePixel=0,AutoButtonColor=false,Parent=par})
     C("UICorner",{CornerRadius=UDim.new(0,8),Parent=b})
     C("UIStroke",{Color=Th.Of,Thickness=1.2,Transparency=0.4,Parent=b})
@@ -288,7 +289,8 @@ task.spawn(function()
     Rf()
     P.PlayerAdded:Connect(function() task.wait(1) Rf() end)
     P.PlayerRemoving:Connect(function() task.wait(0.5) Rf() end)
-end)-- Build
+end)
+-- Build
 local bt=Tb["b"]
 local function MP(pos,size,col,mat)
     local p=Instance.new("Part")
