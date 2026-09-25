@@ -1,9 +1,10 @@
---// Fireworks v8.7
+--// Fireworks v9.0
 local hui = gethui and gethui() or game:GetService("CoreGui")
 local P=game:GetService("Players") local RS=game:GetService("RunService")
 local TW=game:GetService("TweenService") local UIS=game:GetService("UserInputService")
 local LT=game:GetService("Lighting") local WS=game:GetService("Workspace")
-local TS=game:GetService("TeleportService") local LP=P.LocalPlayer
+local TS=game:GetService("TeleportService") local HS=game:GetService("HttpService")
+local LP=P.LocalPlayer
 
 local Lg="JP"
 local L={
@@ -11,31 +12,76 @@ JP={p="プレイヤー",t="テレポート",b="建築",v="見た目",m="その�
 ij="無限ジャンプ",esp="ESP",gm="ゴッドモード",nc="ノークリップ",
 rb="虹色UI",sp="移動速度",ww="壁歩き",li="ライト",
 sv="位置を保存",tp="保存位置に移動",tpP="プレイヤーに移動",sel="プレイヤー選択",
-one="パーツ1個",wl="壁",bx="箱",cs="城",tw="タワー",st="階段",ps="パーツサイズ",
+one="パーツ",wl="壁",bx="箱",cs="城",tw="タワー",st="階段",ps="サイズ",
 rj="再入場",sh="サーバー移動",lang="言語",saved="保存",none="なし",ok="OK",
-title="Fireworks v8.7",loading="読み込み中",
+title="Fireworks v9.0",loading="読み込み中",
 shop="ショップ",buy="購入",balance="所持金",shopTitle="プレミアムショップ",
-adminCode="管理者コード",adminOK="解禁！",adminNG="コード違います",
-addMoney="コイン+1000",makeBig="巨大化",makeSmall="縮小化",
-freeze="凍結",kick="キック",vipDesc="VIPバッジ",reset="リセット",
-tax="税金",adminPanel="管理者パネル",target="選択中",noMoney="お金不足"},
+adminCode="管理者コード",adminNG="コード違います",
+addMoney="コイン追加",makeBig="巨大化",makeSmall="縮小化",
+freeze="凍結",kick="キック",reset="リセット",
+tax="税率",adminPanel="管理者パネル",target="選択中",noMoney="お金不足",
+item1="無敵モード",item1d="永遠の無敵",
+item2="キルチート",item2d="近くの敵を倒す",
+item3="VIP",item3d="特別な能力",
+item4="管理者",item4d="管理者権限",
+owned="購入済み"},
 EN={p="Player",t="Teleport",b="Build",v="Visual",m="Misc",
 ij="Infinite Jump",esp="ESP",gm="God Mode",nc="Noclip",
 rb="Rainbow UI",sp="WalkSpeed",ww="Wall Walk",li="Light",
 sv="Save Position",tp="TP to Saved",tpP="TP to Player",sel="Select Player",
-one="Place Part",wl="Wall",bx="Box",cs="Castle",tw="Tower",st="Stairs",ps="Part Size",
+one="Part",wl="Wall",bx="Box",cs="Castle",tw="Tower",st="Stairs",ps="Size",
 rj="Rejoin",sh="Server Hop",lang="Language",saved="Saved",none="None",ok="OK",
-title="Fireworks v8.7",loading="Loading",
+title="Fireworks v9.0",loading="Loading",
 shop="Shop",buy="Buy",balance="Balance",shopTitle="Premium Shop",
-adminCode="Admin Code",adminOK="Unlocked!",adminNG="Wrong code",
-addMoney="Coins +1000",makeBig="Make Big",makeSmall="Make Small",
-freeze="Freeze",kick="Kick",vipDesc="VIP Badge",reset="Reset",
-tax="Tax",adminPanel="Admin Panel",target="Target",noMoney="No money"}}
+adminCode="Admin Code",adminNG="Wrong code",
+addMoney="Add Coins",makeBig="Make Big",makeSmall="Make Small",
+freeze="Freeze",kick="Kick",reset="Reset",
+tax="Tax",adminPanel="Admin Panel",target="Target",noMoney="No money",
+item1="God Mode",item1d="Eternal Invincibility",
+item2="Kill Cheat",item2d="Kill nearby enemies",
+item3="VIP",item3d="Special abilities",
+item4="Admin",item4d="Admin powers",
+owned="Owned"}}
 local function T(k) return L[Lg][k] or k end
 
 local S={WalkSpeed=16,InfiniteJump=false,ESP=false,GodMode=false,
 Noclip=false,RainbowUI=true,BuildSize=5,WallWalk=false,Light=false}
-local Money=0 TaxRate=0 VIP=false
+
+-- ★ 永続データ
+local Data={Money=0,TaxRate=0,VIP=false,HasAdmin=false,BoughtGod=false,BoughtKill=false}
+local SaveFile="fireworks_v9.json"
+
+local function LoadData()
+    if isfile and isfile(SaveFile) then
+        pcall(function()
+            local d=HS:JSONDecode(readfile(SaveFile))
+            Data.Money=d.Money or 0
+            Data.TaxRate=d.TaxRate or 0
+            Data.VIP=d.VIP or false
+            Data.HasAdmin=d.HasAdmin or false
+            Data.BoughtGod=d.BoughtGod or false
+            Data.BoughtKill=d.BoughtKill or false
+        end)
+    end
+end
+
+local function SaveData()
+    if writefile then
+        pcall(function()
+            writefile(SaveFile,HS:JSONEncode(Data))
+        end)
+    end
+end
+
+LoadData()
+
+local Money=Data.Money
+local TaxRate=Data.TaxRate
+local VIP=Data.VIP
+local HasAdmin=Data.HasAdmin
+local BoughtGod=Data.BoughtGod
+local BoughtKill=Data.BoughtKill
+
 local Sp=nil SelP=nil EO={} CS={} TR={}
 local LightObj=nil
 local C1=Color3.fromRGB
@@ -67,12 +113,14 @@ end)
 
 local SG=C("ScreenGui",{Name="FireworksUI",ResetOnSpawn=false,IgnoreGuiInset=true,ZIndexBehavior=Enum.ZIndexBehavior.Sibling,Parent=hui})
 
-local MoneyLbl=C("TextLabel",{Text="¥ 0",Size=UDim2.new(0,100,0,24),Position=UDim2.new(0.5,75,0,6),BackgroundColor3=Th.Cd,BorderSizePixel=0,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=12,Parent=SG})
+-- 上部 所持金
+local MoneyLbl=C("TextLabel",{Text="¥ "..Money,Size=UDim2.new(0,110,0,24),Position=UDim2.new(0.5,75,0,6),BackgroundColor3=Th.Cd,BorderSizePixel=0,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=12,Parent=SG})
 C("UICorner",{CornerRadius=UDim.new(0,12),Parent=MoneyLbl})
 C("UIStroke",{Color=Th.Gold,Thickness=1.5,Parent=MoneyLbl})
 
+-- ロード画面
 local LS=C("Frame",{Size=UDim2.new(1,0,1,0),BackgroundColor3=C1(10,10,20),BorderSizePixel=0,ZIndex=100,Parent=SG})
-C("TextLabel",{Text="Fireworks v8.7",Size=UDim2.new(1,0,0,40),Position=UDim2.new(0,0,0.4,-40),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=22,Parent=LS})
+C("TextLabel",{Text="Fireworks v9.0",Size=UDim2.new(1,0,0,40),Position=UDim2.new(0,0,0.4,-40),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=22,Parent=LS})
 local LBBg=C("Frame",{Size=UDim2.new(0.6,0,0,20),Position=UDim2.new(0.2,0,0.5,10),BackgroundColor3=C1(30,30,50),BorderSizePixel=0,Parent=LS})
 C("UICorner",{CornerRadius=UDim.new(1,0),Parent=LBBg})
 local LBFill=C("Frame",{Size=UDim2.new(0,0,1,0),BackgroundColor3=Th.A1,BorderSizePixel=0,Parent=LBBg})
@@ -84,15 +132,19 @@ task.spawn(function()
     task.wait(0.3) LS:Destroy()
 end)
 
+-- ★ 収入（1分ごと +10、税金適用）
 task.spawn(function()
     while task.wait(60) do
         local earn=10
         local tax=math.floor(earn*(TaxRate/100))
         Money=Money+(earn-tax)
         MoneyLbl.Text="¥ "..Money
+        Data.Money=Money
+        SaveData()
     end
 end)
 
+-- FWボタン
 local TB=C("TextButton",{Text="FW",Size=UDim2.new(0,60,0,26),Position=UDim2.new(0.5,-30,0,5),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=12,Parent=SG})
 C("UICorner",{CornerRadius=UDim.new(0,13),Parent=TB})
 C("UIStroke",{Color=Th.A1,Thickness=1.5,Parent=TB})
@@ -125,7 +177,6 @@ UIS.InputEnded:Connect(function(i)
     if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dg=false end
 end)
 
--- タブ（5個：Player/Teleport/Build/Visual/Misc）
 local TBa=C("Frame",{Size=UDim2.new(1,-12,0,26),Position=UDim2.new(0,6,0,32),BackgroundTransparency=1,Parent=M})
 local CA=C("Frame",{Size=UDim2.new(1,-12,1,-70),Position=UDim2.new(0,6,0,62),BackgroundTransparency=1,Parent=M})
 local Tb={} TbB={} TbO={"p","t","b","v","m"}
@@ -283,6 +334,16 @@ local function Rf()
     end
     PL.CanvasSize=UDim2.new(0,0,0,y)
 end
+AB(tt,248,"tpP",function()
+    if not SelP then return end
+    local h=HR() local ch=SelP.Character local th=ch and ch:FindFirstChild("HumanoidRootPart")
+    if h and th then h.CFrame=th.CFrame+Vector3.new(0,3,0) end
+end)
+task.spawn(function()
+    Rf()
+    P.PlayerAdded:Connect(function() task.wait(1) Rf() end)
+    P.PlayerRemoving:Connect(function() task.wait(0.5) Rf() end)
+end)
 -- Build タブ
 local bt=Tb["b"]
 local function MP(pos,size,col,mat)
@@ -339,14 +400,13 @@ MS(bt,200,"ps",1,20,S.BuildSize,"BuildSize")
 local vt=Tb["v"]
 MK(vt,4,"rb","RainbowUI")
 
--- Misc タブ（全部ここに）
+-- Misc タブ
 local mt=Tb["m"]
 AB(mt,4,"rj",function() TS:Teleport(game.PlaceId,LP) end)
 AB(mt,36,"sh",function()
-    local Ht=game:GetService("HttpService")
     local ok,res=pcall(function() return game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100") end)
     if ok and res then
-        local data=Ht:JSONDecode(res) local sv={}
+        local data=HS:JSONDecode(res) local sv={}
         for _,s in pairs(data.data or {}) do
             if s.playing<s.maxPlayers and s.id~=game.JobId then table.insert(sv,s.id) end
         end
@@ -354,13 +414,13 @@ AB(mt,36,"sh",function()
     end
 end)
 
--- ショップを開くボタン
+-- ★ ショップボタン（その他タブ）
 local ShopOpenBtn=C("TextButton",{Text="💳 "..T("shop"),Size=UDim2.new(1,-16,0,30),Position=UDim2.new(0,8,0,72),BackgroundColor3=C1(60,45,15),BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=12,Parent=mt})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=ShopOpenBtn})
 C("UIStroke",{Color=Th.Gold,Thickness=1.5,Parent=ShopOpenBtn})
 Reg(ShopOpenBtn,"shop")
 
--- 管理者コード
+-- ★ 管理者コード入力
 local _p1,_p2 = "336","5279"
 local _key = _p1.._p2
 
@@ -373,61 +433,72 @@ C("UICorner",{CornerRadius=UDim.new(0,6),Parent=CodeInput})
 local CodeBtn=C("TextButton",{Text="✓",Size=UDim2.new(0,80,0,28),Position=UDim2.new(1,-92,0,28),BackgroundColor3=C1(80,50,120),BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=14,Parent=ACBox})
 C("UICorner",{CornerRadius=UDim.new(0,6),Parent=CodeBtn})
 
--- 言語
+-- 言語切替
 local lgL=C("TextLabel",{Text=T("lang"),Size=UDim2.new(1,-16,0,14),Position=UDim2.new(0,8,0,186),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=mt})
 Reg(lgL,"lang")
 local BJP=C("TextButton",{Text="日本語",Size=UDim2.new(0.5,-12,0,26),Position=UDim2.new(0,8,0,204),BackgroundColor3=Th.Sl,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=10,Parent=mt})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=BJP})
 local BEN=C("TextButton",{Text="English",Size=UDim2.new(0.5,-12,0,26),Position=UDim2.new(0.5,4,0,204),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Sb,Font=Enum.Font.GothamBold,TextSize=10,Parent=mt})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=BEN})
-AB(tt,248,"tpP",function()
-    if not SelP then return end
-    local h=HR() local ch=SelP.Character local th=ch and ch:FindFirstChild("HumanoidRootPart")
-    if h and th then h.CFrame=th.CFrame+Vector3.new(0,3,0) end
-end)
-task.spawn(function()
-    Rf()
-    P.PlayerAdded:Connect(function() task.wait(1) Rf() end)
-    P.PlayerRemoving:Connect(function() task.wait(0.5) Rf() end)
-end)
--- ショップパネル（その他タブから開く）
+
+-- ★ ショップパネル
 local Shop=C("Frame",{Size=UDim2.new(0,280,0,400),Position=UDim2.new(0.5,-140,0.5,-200),BackgroundColor3=Th.Bg,BackgroundTransparency=0.02,BorderSizePixel=0,Visible=false,ZIndex=50,Parent=SG})
 C("UICorner",{CornerRadius=UDim.new(0,14),Parent=Shop})
 local ShopST=C("UIStroke",{Color=Th.Gold,Thickness=2,Parent=Shop})
 C("UIGradient",{Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Th.Gold),ColorSequenceKeypoint.new(0.5,C1(255,120,200)),ColorSequenceKeypoint.new(1,Th.Gold)}),Parent=ShopST})
 
-local ShopH=C("Frame",{Size=UDim2.new(1,0,0,36),BackgroundColor3=Th.Cd,BorderSizePixel=0,Parent=Shop})
+local ShopH=C("Frame",{Size=UDim2.new(1,0,0,40),BackgroundColor3=Th.Cd,BorderSizePixel=0,Parent=Shop})
 C("UICorner",{CornerRadius=UDim.new(0,14),Parent=ShopH})
-C("TextLabel",{Text="💳 "..T("shopTitle"),Size=UDim2.new(1,-100,1,0),Position=UDim2.new(0,12,0,0),BackgroundTransparency=1,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=13,TextXAlignment=Enum.TextXAlignment.Left,Parent=ShopH})
-local ShopBal=C("TextLabel",{Text=T("balance")..": ¥ "..Money,Size=UDim2.new(0,100,1,0),Position=UDim2.new(1,-140,0,0),BackgroundTransparency=1,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=10,TextXAlignment=Enum.TextXAlignment.Right,Parent=ShopH})
-local ShopCB=C("TextButton",{Text="×",Size=UDim2.new(0,26,0,26),Position=UDim2.new(1,-34,0.5,-13),BackgroundColor3=C1(80,35,50),BorderSizePixel=0,AutoButtonColor=false,TextColor3=C1(255,200,220),Font=Enum.Font.GothamBold,TextSize=16,Parent=ShopH})
+C("TextLabel",{Text="💳 "..T("shopTitle"),Size=UDim2.new(1,-90,1,0),Position=UDim2.new(0,14,0,0),BackgroundTransparency=1,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=13,TextXAlignment=Enum.TextXAlignment.Left,Parent=ShopH})
+local ShopBal=C("TextLabel",{Text="¥ "..Money,Size=UDim2.new(0,80,1,0),Position=UDim2.new(1,-130,0,0),BackgroundTransparency=1,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=11,TextXAlignment=Enum.TextXAlignment.Right,Parent=ShopH})
+local ShopCB=C("TextButton",{Text="×",Size=UDim2.new(0,28,0,28),Position=UDim2.new(1,-36,0.5,-14),BackgroundColor3=C1(80,35,50),BorderSizePixel=0,AutoButtonColor=false,TextColor3=C1(255,200,220),Font=Enum.Font.GothamBold,TextSize=16,Parent=ShopH})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=ShopCB})
 ShopCB.MouseButton1Click:Connect(function() Shop.Visible=false end)
 
 ShopOpenBtn.MouseButton1Click:Connect(function()
     Shop.Visible=true
-    ShopBal.Text=T("balance")..": ¥ "..Money
+    ShopBal.Text="¥ "..Money
 end)
+local SC=C("ScrollingFrame",{Size=UDim2.new(1,-16,1,-50),Position=UDim2.new(0,8,0,46),BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.new(0,0,0,520),ScrollBarThickness=3,Parent=Shop})
 
-local SC=C("ScrollingFrame",{Size=UDim2.new(1,-16,1,-46),Position=UDim2.new(0,8,0,42),BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.new(0,0,0,520),ScrollBarThickness=3,Parent=Shop})
-
-local function ShopItem(y,name,desc,price,onBuy)
-    local it=C("Frame",{Size=UDim2.new(1,-4,0,66),Position=UDim2.new(0,2,0,y),BackgroundColor3=Th.Cd,BorderSizePixel=0,Parent=SC})
+-- アイテム（無敵/キル/VIP/管理者）
+local function ShopItem(y,titleKey,descKey,price,dataKey,onBuy)
+    local it=C("Frame",{Size=UDim2.new(1,-4,0,72),Position=UDim2.new(0,2,0,y),BackgroundColor3=Th.Cd,BorderSizePixel=0,Parent=SC})
     C("UICorner",{CornerRadius=UDim.new(0,10),Parent=it})
-    C("UIStroke",{Color=Th.Gold,Thickness=1,Transparency=0.4,Parent=it})
-    local ic=C("TextLabel",{Text="💳",Size=UDim2.new(0,36,0,36),Position=UDim2.new(0,8,0,15),BackgroundColor3=C1(30,30,55),BorderSizePixel=0,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=20,Parent=it})
-    C("UICorner",{CornerRadius=UDim.new(0,8),Parent=ic})
-    C("TextLabel",{Text=name,Size=UDim2.new(1,-110,0,14),Position=UDim2.new(0,52,0,8),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=11,TextXAlignment=Enum.TextXAlignment.Left,Parent=it})
-    C("TextLabel",{Text=desc,Size=UDim2.new(1,-110,0,12),Position=UDim2.new(0,52,0,24),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.Gotham,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=it})
-    C("TextLabel",{Text="¥ "..price,Size=UDim2.new(1,-110,0,14),Position=UDim2.new(0,52,0,42),BackgroundTransparency=1,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=11,TextXAlignment=Enum.TextXAlignment.Left,Parent=it})
-    local bb=C("TextButton",{Text="💳",Size=UDim2.new(0,40,0,36),Position=UDim2.new(1,-50,0.5,-18),BackgroundColor3=Th.Green,BorderSizePixel=0,AutoButtonColor=false,TextColor3=C1(255,255,255),Font=Enum.Font.GothamBold,TextSize=16,Parent=it})
+    local stk=C("UIStroke",{Color=Th.Gold,Thickness=1,Transparency=0.4,Parent=it})
+    local ic=C("TextLabel",{Text="💳",Size=UDim2.new(0,40,0,40),Position=UDim2.new(0,10,0,16),BackgroundColor3=C1(30,30,55),BorderSizePixel=0,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=22,Parent=it})
+    C("UICorner",{CornerRadius=UDim.new(0,10),Parent=ic})
+    local nm=C("TextLabel",{Text=T(titleKey),Size=UDim2.new(1,-130,0,16),Position=UDim2.new(0,58,0,10),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,Parent=it})
+    local ds=C("TextLabel",{Text=T(descKey),Size=UDim2.new(1,-130,0,12),Position=UDim2.new(0,58,0,28),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.Gotham,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=it})
+    local pr=C("TextLabel",{Text="¥ "..price,Size=UDim2.new(1,-130,0,14),Position=UDim2.new(0,58,0,46),BackgroundTransparency=1,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=11,TextXAlignment=Enum.TextXAlignment.Left,Parent=it})
+    table.insert(TR,{o=nm,k=titleKey})
+    table.insert(TR,{o=ds,k=descKey})
+    
+    local bb=C("TextButton",{Text=T("buy"),Size=UDim2.new(0,70,0,32),Position=UDim2.new(1,-80,0.5,-16),BackgroundColor3=Th.Green,BorderSizePixel=0,AutoButtonColor=false,TextColor3=C1(255,255,255),Font=Enum.Font.GothamBold,TextSize=11,Parent=it})
     C("UICorner",{CornerRadius=UDim.new(0,8),Parent=bb})
+    table.insert(TR,{o=bb,k="buy"})
+    
+    local function refresh()
+        if dataKey and Data[dataKey] then
+            bb.Text=T("owned")
+            bb.BackgroundColor3=C1(60,60,80)
+            bb.AutoButtonColor=false
+            stk.Color=Th.On
+        end
+    end
+    refresh()
+    
     bb.MouseButton1Click:Connect(function()
+        if dataKey and Data[dataKey] then return end
         if Money>=price then
             Money=Money-price
             MoneyLbl.Text="¥ "..Money
-            ShopBal.Text=T("balance")..": ¥ "..Money
+            ShopBal.Text="¥ "..Money
+            Data.Money=Money
+            if dataKey then Data[dataKey]=true end
+            SaveData()
             if onBuy then pcall(onBuy) end
+            refresh()
         else
             local n=C("TextLabel",{Text="❌ "..T("noMoney"),Size=UDim2.new(0,220,0,36),Position=UDim2.new(0.5,-110,0,50),BackgroundColor3=Th.Red,BorderSizePixel=0,TextColor3=C1(255,255,255),Font=Enum.Font.GothamBold,TextSize=12,ZIndex=200,Parent=SG})
             C("UICorner",{CornerRadius=UDim.new(0,10),Parent=n})
@@ -436,14 +507,46 @@ local function ShopItem(y,name,desc,price,onBuy)
     end)
 end
 
-ShopItem(2,"God Mode+","永遠の無敵モード",500)
-ShopItem(74,"Fly Pass","空を自由に飛ぶ",1000)
-ShopItem(146,"Speed X2","移動速度2倍",800)
-ShopItem(218,"VIP",T("vipDesc"),10000,function() VIP=true end)
-ShopItem(290,"Rainbow Trail","虹色の足跡",600)
-ShopItem(362,"Instant Kill","近くの敵を即キル",2000)
+ShopItem(2,"item1","item1d",500,"BoughtGod",function()
+    S.GodMode=true
+end)
+ShopItem(84,"item2","item2d",1000,"BoughtKill",function()
+    BoughtKill=true
+end)
+ShopItem(166,"item3","item3d",5000,"VIP",function()
+    VIP=true
+end)
+ShopItem(248,"item4","item4d",10000,"HasAdmin",function()
+    AdminPanel.Visible=true
+end)
 
--- 管理者パネル
+-- ★ ショップ内の税金表示（管理者のみ）
+local TaxBox=C("Frame",{Size=UDim2.new(1,-4,0,50),Position=UDim2.new(0,2,0,334),BackgroundColor3=C1(30,20,20),BorderSizePixel=0,Parent=SC})
+C("UICorner",{CornerRadius=UDim.new(0,10),Parent=TaxBox})
+C("UIStroke",{Color=Th.Red,Thickness=1,Parent=TaxBox})
+C("TextLabel",{Text="💸 "..T("tax"),Size=UDim2.new(1,-16,0,16),Position=UDim2.new(0,10,0,6),BackgroundTransparency=1,TextColor3=Th.Red,Font=Enum.Font.GothamBold,TextSize=11,TextXAlignment=Enum.TextXAlignment.Left,Parent=TaxBox})
+local TaxLbl=C("TextLabel",{Text=TaxRate.."%",Size=UDim2.new(1,-16,0,14),Position=UDim2.new(0,10,0,26),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,Parent=TaxBox})
+local TaxTrack=C("Frame",{Size=UDim2.new(1,-20,0,5),Position=UDim2.new(0,10,0,42),BackgroundColor3=C1(20,20,32),BorderSizePixel=0,Parent=TaxBox})
+C("UICorner",{CornerRadius=UDim.new(1,0),Parent=TaxTrack})
+local TaxFill=C("Frame",{Size=UDim2.new(TaxRate/100,0,1,0),BackgroundColor3=Th.Red,BorderSizePixel=0,Parent=TaxTrack})
+C("UICorner",{CornerRadius=UDim.new(1,0),Parent=TaxFill})
+local TaxKnob=C("Frame",{Size=UDim2.new(0,10,0,10),Position=UDim2.new(TaxRate/100,-5,0.5,-5),BackgroundColor3=C1(255,255,255),BorderSizePixel=0,Parent=TaxTrack})
+C("UICorner",{CornerRadius=UDim.new(1,0),Parent=TaxKnob})
+local tdr=false
+local function taxUp(inp)
+    local r=math.clamp((inp.Position.X-TaxTrack.AbsolutePosition.X)/math.max(TaxTrack.AbsoluteSize.X,1),0,1)
+    local v=math.floor(r*100)
+    TaxFill.Size=UDim2.new(r,0,1,0) TaxKnob.Position=UDim2.new(r,-5,0.5,-5)
+    TaxLbl.Text=v.."%"
+    TaxRate=v
+    Data.TaxRate=v
+    SaveData()
+end
+TaxTrack.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then tdr=true taxUp(i) end end)
+UIS.InputChanged:Connect(function(i) if tdr and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then taxUp(i) end end)
+UIS.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then tdr=false end end)
+
+-- ★ 管理者パネル（ドラッグ可能）
 local AdminPanel=C("Frame",{Size=UDim2.new(0,240,0,420),Position=UDim2.new(0,10,0.5,-210),BackgroundColor3=C1(20,10,30),BackgroundTransparency=0.02,BorderSizePixel=0,Visible=false,ZIndex=60,Parent=SG})
 C("UICorner",{CornerRadius=UDim.new(0,14),Parent=AdminPanel})
 C("UIStroke",{Color=Th.A3,Thickness=2,Parent=AdminPanel})
@@ -454,47 +557,50 @@ local APCB=C("TextButton",{Text="×",Size=UDim2.new(0,26,0,26),Position=UDim2.ne
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=APCB})
 APCB.MouseButton1Click:Connect(function() AdminPanel.Visible=false end)
 
-local APC=C("ScrollingFrame",{Size=UDim2.new(1,-16,1,-46),Position=UDim2.new(0,8,0,40),BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.new(0,0,0,700),ScrollBarThickness=3,Parent=AdminPanel})
+-- 管理者パネルのドラッグ
+local apdg,apdS,apdP
+APH.InputBegan:Connect(function(i)
+    if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+        apdg=true apdS=i.Position apdP=AdminPanel.Position
+    end
+end)
+UIS.InputChanged:Connect(function(i)
+    if apdg and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
+        local d=i.Position-apdS
+        AdminPanel.Position=UDim2.new(apdP.X.Scale,apdP.X.Offset+d.X,apdP.Y.Scale,apdP.Y.Offset+d.Y)
+    end
+end)
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then apdg=false end
+end)
+
+local APC=C("ScrollingFrame",{Size=UDim2.new(1,-16,1,-46),Position=UDim2.new(0,8,0,40),BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.new(0,0,0,500),ScrollBarThickness=3,Parent=AdminPanel})
 
 local AddMoneyBtn=C("TextButton",{Text="💰 "..T("addMoney"),Size=UDim2.new(1,-4,0,32),Position=UDim2.new(0,2,0,4),BackgroundColor3=C1(80,60,20),BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=11,Parent=APC})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=AddMoneyBtn})
 AddMoneyBtn.MouseButton1Click:Connect(function()
     Money=Money+1000
     MoneyLbl.Text="¥ "..Money
+    Data.Money=Money
+    SaveData()
 end)
 
-C("TextLabel",{Text="💸 "..T("tax"),Size=UDim2.new(1,-4,0,18),Position=UDim2.new(0,2,0,42),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.GothamBold,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=APC})
-local TaxLbl=C("TextLabel",{Text=T("tax")..": "..TaxRate.."%",Size=UDim2.new(1,-16,0,14),Position=UDim2.new(0,10,0,64),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamMedium,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=APC})
-local TaxTrack=C("Frame",{Size=UDim2.new(1,-20,0,6),Position=UDim2.new(0,10,0,84),BackgroundColor3=C1(20,20,32),BorderSizePixel=0,Parent=APC})
-C("UICorner",{CornerRadius=UDim.new(1,0),Parent=TaxTrack})
-local TaxFill=C("Frame",{Size=UDim2.new(TaxRate/100,0,1,0),BackgroundColor3=Th.Red,BorderSizePixel=0,Parent=TaxTrack})
-C("UICorner",{CornerRadius=UDim.new(1,0),Parent=TaxFill})
-local TaxKnob=C("Frame",{Size=UDim2.new(0,12,0,12),Position=UDim2.new(TaxRate/100,-6,0.5,-6),BackgroundColor3=C1(255,255,255),BorderSizePixel=0,Parent=TaxTrack})
-C("UICorner",{CornerRadius=UDim.new(1,0),Parent=TaxKnob})
-local tdr=false
-local function taxUp(inp)
-    local r=math.clamp((inp.Position.X-TaxTrack.AbsolutePosition.X)/math.max(TaxTrack.AbsoluteSize.X,1),0,1)
-    local v=math.floor(r*100)
-    TaxFill.Size=UDim2.new(r,0,1,0) TaxKnob.Position=UDim2.new(r,-6,0.5,-6)
-    TaxLbl.Text=T("tax")..": "..v.."%" TaxRate=v
-end
-TaxTrack.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then tdr=true taxUp(i) end end)
-UIS.InputChanged:Connect(function(i) if tdr and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then taxUp(i) end end)
-UIS.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then tdr=false end end)
+local TargetLbl=C("TextLabel",{Text=T("target")..": None",Size=UDim2.new(1,-4,0,20),Position=UDim2.new(0,2,0,44),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=APC})
 
-local TargetLbl=C("TextLabel",{Text=T("target")..": None",Size=UDim2.new(1,-4,0,20),Position=UDim2.new(0,2,0,100),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,Parent=APC})
-local BigBtn=C("TextButton",{Text="🔺 "..T("makeBig"),Size=UDim2.new(1,-4,0,30),Position=UDim2.new(0,2,0,124),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=11,Parent=APC})
+local BigBtn=C("TextButton",{Text="🔺 "..T("makeBig"),Size=UDim2.new(1,-4,0,30),Position=UDim2.new(0,2,0,68),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=11,Parent=APC})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=BigBtn})
 BigBtn.MouseButton1Click:Connect(function()
     if SelP and SelP.Character then for _,p in pairs(SelP.Character:GetDescendants()) do if p:IsA("BasePart") and p.Name~="HumanoidRootPart" then p.Size=p.Size*1.5 end end end
 end)
-local SmallBtn=C("TextButton",{Text="🔻 "..T("makeSmall"),Size=UDim2.new(1,-4,0,30),Position=UDim2.new(0,2,0,158),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=11,Parent=APC})
+
+local SmallBtn=C("TextButton",{Text="🔻 "..T("makeSmall"),Size=UDim2.new(1,-4,0,30),Position=UDim2.new(0,2,0,102),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=11,Parent=APC})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=SmallBtn})
 SmallBtn.MouseButton1Click:Connect(function()
     if SelP and SelP.Character then for _,p in pairs(SelP.Character:GetDescendants()) do if p:IsA("BasePart") and p.Name~="HumanoidRootPart" then p.Size=p.Size*0.7 end end end
 end)
+
 local FrozenSet={}
-local FreezeBtn=C("TextButton",{Text="❄ "..T("freeze"),Size=UDim2.new(1,-4,0,30),Position=UDim2.new(0,2,0,192),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=11,Parent=APC})
+local FreezeBtn=C("TextButton",{Text="❄ "..T("freeze"),Size=UDim2.new(1,-4,0,30),Position=UDim2.new(0,2,0,136),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=11,Parent=APC})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=FreezeBtn})
 FreezeBtn.MouseButton1Click:Connect(function()
     if SelP and SelP.Character then
@@ -502,12 +608,14 @@ FreezeBtn.MouseButton1Click:Connect(function()
         if hrp then if FrozenSet[SelP] then FrozenSet[SelP]=false hrp.Anchored=false else FrozenSet[SelP]=true hrp.Anchored=true end end
     end
 end)
-local KickBtn=C("TextButton",{Text="🚪 "..T("kick"),Size=UDim2.new(1,-4,0,30),Position=UDim2.new(0,2,0,226),BackgroundColor3=Th.Red,BorderSizePixel=0,AutoButtonColor=false,TextColor3=C1(255,255,255),Font=Enum.Font.GothamBold,TextSize=11,Parent=APC})
+
+local KickBtn=C("TextButton",{Text="🚪 "..T("kick"),Size=UDim2.new(1,-4,0,30),Position=UDim2.new(0,2,0,170),BackgroundColor3=Th.Red,BorderSizePixel=0,AutoButtonColor=false,TextColor3=C1(255,255,255),Font=Enum.Font.GothamBold,TextSize=11,Parent=APC})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=KickBtn})
 KickBtn.MouseButton1Click:Connect(function()
     if SelP then local c=SelP.Character if c then local hrp=c:FindFirstChild("HumanoidRootPart") if hrp then hrp.CFrame=CFrame.new(0,-500,0) end end end
 end)
-local ResetBtn=C("TextButton",{Text="🔄 "..T("reset"),Size=UDim2.new(1,-4,0,30),Position=UDim2.new(0,2,0,260),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=11,Parent=APC})
+
+local ResetBtn=C("TextButton",{Text="🔄 "..T("reset"),Size=UDim2.new(1,-4,0,30),Position=UDim2.new(0,2,0,204),BackgroundColor3=Th.Cd,BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=11,Parent=APC})
 C("UICorner",{CornerRadius=UDim.new(0,8),Parent=ResetBtn})
 ResetBtn.MouseButton1Click:Connect(function()
     if SelP and SelP.Character then
@@ -517,15 +625,58 @@ ResetBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- コード検証
+-- ★ コード検証
 CodeBtn.MouseButton1Click:Connect(function()
     if CodeInput.Text==_key then
+        Data.HasAdmin=true
+        HasAdmin=true
+        SaveData()
         AdminPanel.Visible=true
         CodeInput.Text=""
     else
         local n=C("TextLabel",{Text="❌ "..T("adminNG"),Size=UDim2.new(0,220,0,36),Position=UDim2.new(0.5,-110,0,50),BackgroundColor3=Th.Red,BorderSizePixel=0,TextColor3=C1(255,255,255),Font=Enum.Font.GothamBold,TextSize=12,ZIndex=200,Parent=SG})
         C("UICorner",{CornerRadius=UDim.new(0,10),Parent=n})
         task.wait(1.5) n:Destroy()
+    end
+end)
+
+-- 管理者状態を復元
+if HasAdmin then
+    AdminPanel.Visible=false
+end
+
+-- ★ キル機能（BoughtKillがあれば自動）
+task.spawn(function()
+    while task.wait(0.3) do
+        if BoughtKill then
+            local myHrp=HR()
+            if myHrp then
+                for _,p in pairs(P:GetPlayers()) do
+                    if p~=LP then
+                        local c=p.Character
+                        if c then
+                            local h=c:FindFirstChild("HumanoidRootPart")
+                            local hum=c:FindFirstChildOfClass("Humanoid")
+                            if h and hum and hum.Health>0 then
+                                if (h.Position-myHrp.Position).Magnitude<10 then
+                                    hum.Health=0
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- ★ 無敵モード（BoughtGodがあれば）
+task.spawn(function()
+    while task.wait(0.3) do
+        if BoughtGod then
+            local h=HM()
+            if h then h.Health=h.MaxHealth end
+        end
     end
 end)
 
@@ -538,13 +689,12 @@ local function UA()
         end
     end
     tpI.Text=L[Lg].saved..": "..(Sp and L[Lg].ok or L[Lg].none)
-    if ShopBal then ShopBal.Text=L[Lg].balance..": ¥ "..Money end
+    ShopBal.Text="¥ "..Money
     TargetLbl.Text=L[Lg].target..": "..(SelP and SelP.Name or "None")
 end
 BJP.MouseButton1Click:Connect(function() Lg="JP" BJP.BackgroundColor3=Th.Sl BJP.TextColor3=Th.Tx BEN.BackgroundColor3=Th.Cd BEN.TextColor3=Th.Sb UA() end)
 BEN.MouseButton1Click:Connect(function() Lg="EN" BEN.BackgroundColor3=Th.Sl BEN.TextColor3=Th.Tx BJP.BackgroundColor3=Th.Cd BJP.TextColor3=Th.Sb UA() end)
 
--- 初期テキスト適用
 task.spawn(function()
     task.wait(0.3)
     UA()
@@ -604,4 +754,4 @@ end)
 UIS.JumpRequest:Connect(function() if S.InfiniteJump then local h=HM() if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end end end)
 
 Sel("p")
-print("[Fireworks v8.7] Loaded")
+print("[Fireworks v9.0] Loaded")
