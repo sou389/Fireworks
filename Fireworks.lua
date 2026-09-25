@@ -1,4 +1,4 @@
---// Fireworks v8.3
+--// Fireworks v8.4
 local hui = gethui and gethui() or game:GetService("CoreGui")
 local P=game:GetService("Players") local RS=game:GetService("RunService")
 local TW=game:GetService("TweenService") local UIS=game:GetService("UserInputService")
@@ -9,31 +9,39 @@ local Lg="JP"
 local L={
 JP={p="プレイヤー",t="テレポート",b="建築",v="見た目",m="その他",
 ij="無限ジャンプ",esp="ESP",gm="ゴッドモード",nc="ノークリップ",
-fb="フルブライト",rb="虹色UI",sp="移動速度",
+rb="虹色UI",sp="移動速度",
 ww="壁歩き",li="ライト",
 sv="位置を保存",tp="保存位置に移動",tpP="プレイヤーに移動",sel="プレイヤー選択",
 one="パーツ1個",wl="壁",bx="箱",cs="城",tw="タワー",st="階段",ps="パーツサイズ",
 rj="再入場",sh="サーバー移動",lang="言語",saved="保存",none="なし",ok="OK",
-title="Fireworks v8.3",loading="読み込み中"},
+title="Fireworks v8.4",loading="読み込み中",
+shop="ショップ",buy="購入",price="円",balance="所持金",
+shopTitle="プレミアムショップ",thanks="購入ありがとうございます！",
+noMoney="お金が足りません",pay="支払う",cancel="キャンセル"},
 EN={p="Player",t="Teleport",b="Build",v="Visual",m="Misc",
 ij="Infinite Jump",esp="ESP",gm="God Mode",nc="Noclip",
-fb="Full Bright",rb="Rainbow UI",sp="WalkSpeed",
+rb="Rainbow UI",sp="WalkSpeed",
 ww="Wall Walk",li="Light",
 sv="Save Position",tp="TP to Saved",tpP="TP to Player",sel="Select Player",
 one="Place Part",wl="Wall",bx="Box",cs="Castle",tw="Tower",st="Stairs",ps="Part Size",
 rj="Rejoin",sh="Server Hop",lang="Language",saved="Saved",none="None",ok="OK",
-title="Fireworks v8.3",loading="Loading"}}
+title="Fireworks v8.4",loading="Loading",
+shop="Shop",buy="Buy",price="Yen",balance="Balance",
+shopTitle="Premium Shop",thanks="Thank you for your purchase!",
+noMoney="Not enough money",pay="Pay",cancel="Cancel"}}
 local function T(k) return L[Lg][k] or k end
 
 local S={WalkSpeed=16,InfiniteJump=false,ESP=false,GodMode=false,
-Noclip=false,FullBright=false,RainbowUI=true,BuildSize=5,
-WallWalk=false,Light=false}
+Noclip=false,RainbowUI=true,BuildSize=5,WallWalk=false,Light=false}
+
+local Money = 10000  -- 所持金（演出用）
 local Sp=nil SelP=nil EO={} CS={} TR={}
 local LightObj=nil
 local C1=Color3.fromRGB
 local Th={Bg=C1(15,15,25),Cd=C1(24,24,38),Sl=C1(40,40,60),
 Tx=C1(245,245,255),Sb=C1(140,140,180),A1=C1(140,90,255),A2=C1(80,200,255),
-A3=C1(255,90,180),On=C1(80,220,140),Of=C1(60,60,90)}
+A3=C1(255,90,180),On=C1(80,220,140),Of=C1(60,60,90),
+Gold=C1(255,200,60),Green=C1(60,180,90)}
 
 local function C(c,p) local i=Instance.new(c) for k,v in pairs(p or {}) do i[k]=v end return i end
 local function RC(s)
@@ -58,9 +66,9 @@ end)
 
 local SG=C("ScreenGui",{Name="FireworksUI",ResetOnSpawn=false,IgnoreGuiInset=true,ZIndexBehavior=Enum.ZIndexBehavior.Sibling,Parent=hui})
 
--- ★ ロード画面
+-- ロード画面
 local LS=C("Frame",{Size=UDim2.new(1,0,1,0),BackgroundColor3=C1(10,10,20),BorderSizePixel=0,ZIndex=100,Parent=SG})
-local LST=C("TextLabel",{Text=T("loading").." Fireworks v8.3",Size=UDim2.new(1,0,0,40),Position=UDim2.new(0,0,0.4,-40),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=22,Parent=LS})
+local LST=C("TextLabel",{Text=T("loading").." Fireworks v8.4",Size=UDim2.new(1,0,0,40),Position=UDim2.new(0,0,0.4,-40),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=22,Parent=LS})
 local LBBg=C("Frame",{Size=UDim2.new(0.6,0,0,20),Position=UDim2.new(0.2,0,0.5,10),BackgroundColor3=C1(30,30,50),BorderSizePixel=0,Parent=LS})
 C("UICorner",{CornerRadius=UDim.new(1,0),Parent=LBBg})
 local LBFill=C("Frame",{Size=UDim2.new(0,0,1,0),BackgroundColor3=Th.A1,BorderSizePixel=0,Parent=LBBg})
@@ -216,15 +224,14 @@ end)
 P.PlayerAdded:Connect(function(p) if S.ESP then task.wait(1) CE(p) end end)
 P.PlayerRemoving:Connect(RE)
 
--- Player タブ（ジャンプ力削除、壁歩き＆ライト追加）
+-- Player タブ
 local pt=Tb["p"]
 MK(pt,4,"ij","InfiniteJump")
 MK(pt,34,"esp","ESP",function(v) if v then for _,p in pairs(P:GetPlayers()) do CE(p) end else for p,_ in pairs(EO) do RE(p) end end end)
 MK(pt,64,"gm","GodMode")
 MK(pt,94,"nc","Noclip")
-MK(pt,124,"fb","FullBright")
-MK(pt,154,"ww","WallWalk")
-MK(pt,184,"li","Light",function(v)
+MK(pt,124,"ww","WallWalk")
+MK(pt,154,"li","Light",function(v)
     if v then
         local c=LP.Character
         if c then
@@ -240,7 +247,7 @@ MK(pt,184,"li","Light",function(v)
         if LightObj then LightObj.Parent=nil end
     end
 end)
-MS(pt,220,"sp",1,300,S.WalkSpeed,"WalkSpeed")
+MS(pt,190,"sp",1,300,S.WalkSpeed,"WalkSpeed")
 
 -- Teleport
 local tt=Tb["t"]
@@ -282,6 +289,90 @@ task.spawn(function()
     P.PlayerAdded:Connect(function() task.wait(1) Rf() end)
     P.PlayerRemoving:Connect(function() task.wait(0.5) Rf() end)
 end)
+
+-- ★ ショップ機能
+local Shop = C("Frame",{Size=UDim2.new(0,260,0,360),Position=UDim2.new(0.5,-130,0.5,-180),BackgroundColor3=Th.Bg,BackgroundTransparency=0.02,BorderSizePixel=0,Visible=false,ZIndex=50,Parent=SG})
+C("UICorner",{CornerRadius=UDim.new(0,14),Parent=Shop})
+local ShopST=C("UIStroke",{Color=Th.Gold,Thickness=2,Parent=Shop})
+C("UIGradient",{Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Th.Gold),ColorSequenceKeypoint.new(0.5,C1(255,120,200)),ColorSequenceKeypoint.new(1,Th.Gold)}),Parent=ShopST})
+
+local ShopH=C("Frame",{Size=UDim2.new(1,0,0,36),BackgroundColor3=Th.Cd,BorderSizePixel=0,Parent=Shop})
+C("UICorner",{CornerRadius=UDim.new(0,14),Parent=ShopH})
+local ShopT=C("TextLabel",{Text="💳 "..T("shopTitle"),Size=UDim2.new(1,-60,1,0),Position=UDim2.new(0,12,0,0),BackgroundTransparency=1,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=14,TextXAlignment=Enum.TextXAlignment.Left,Parent=ShopH})
+local ShopBal=C("TextLabel",{Text=T("balance")..": ¥ "..Money,Size=UDim2.new(1,-60,1,0),Position=UDim2.new(0,12,0,0),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=10,TextXAlignment=Enum.TextXAlignment.Right,Parent=ShopH})
+
+local ShopCB=C("TextButton",{Text="×",Size=UDim2.new(0,28,0,28),Position=UDim2.new(1,-36,0.5,-14),BackgroundColor3=C1(80,35,50),BorderSizePixel=0,AutoButtonColor=false,TextColor3=C1(255,200,220),Font=Enum.Font.GothamBold,TextSize=18,Parent=ShopH})
+C("UICorner",{CornerRadius=UDim.new(0,8),Parent=ShopCB})
+ShopCB.MouseButton1Click:Connect(function() Shop.Visible=false end)
+-- ショップアイテム
+local ShopContent=C("ScrollingFrame",{Size=UDim2.new(1,-16,1,-56),Position=UDim2.new(0,8,0,44),BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.new(0,0,0,600),ScrollBarThickness=3,Parent=Shop})
+
+local function ShopItem(y, name, desc, price, onBuy)
+    local it=C("Frame",{Size=UDim2.new(1,-4,0,70),Position=UDim2.new(0,2,0,y),BackgroundColor3=Th.Cd,BorderSizePixel=0,Parent=ShopContent})
+    C("UICorner",{CornerRadius=UDim.new(0,10),Parent=it})
+    local s=C("UIStroke",{Color=Th.Gold,Thickness=1,Transparency=0.4,Parent=it})
+    
+    -- 課金マーク（クレジットカード風）
+    local icon=C("TextLabel",{Text="💳",Size=UDim2.new(0,40,0,40),Position=UDim2.new(0,8,0,15),BackgroundColor3=C1(30,30,55),BorderSizePixel=0,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=22,Parent=it})
+    C("UICorner",{CornerRadius=UDim.new(0,8),Parent=icon})
+    
+    C("TextLabel",{Text=name,Size=UDim2.new(1,-160,0,16),Position=UDim2.new(0,56,0,10),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,Parent=it})
+    C("TextLabel",{Text=desc,Size=UDim2.new(1,-160,0,14),Position=UDim2.new(0,56,0,28),BackgroundTransparency=1,TextColor3=Th.Sb,Font=Enum.Font.Gotham,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,Parent=it})
+    C("TextLabel",{Text="¥ "..price,Size=UDim2.new(1,-160,0,14),Position=UDim2.new(0,56,0,46),BackgroundTransparency=1,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=11,TextXAlignment=Enum.TextXAlignment.Left,Parent=it})
+    
+    local bb=C("TextButton",{Text="💳 "..T("buy"),Size=UDim2.new(0,80,0,30),Position=UDim2.new(1,-90,0.5,-15),BackgroundColor3=Th.Green,BorderSizePixel=0,AutoButtonColor=false,TextColor3=C1(255,255,255),Font=Enum.Font.GothamBold,TextSize=11,Parent=it})
+    C("UICorner",{CornerRadius=UDim.new(0,8),Parent=bb})
+    
+    bb.MouseButton1Click:Connect(function()
+        if Money >= price then
+            -- 課金演出
+            local pop=C("Frame",{Size=UDim2.new(0,240,0,140),Position=UDim2.new(0.5,-120,0.5,-70),BackgroundColor3=Th.Bg,BorderSizePixel=0,ZIndex=100,Parent=SG})
+            C("UICorner",{CornerRadius=UDim.new(0,14),Parent=pop})
+            local pst=C("UIStroke",{Color=Th.Gold,Thickness=2,Parent=pop})
+            C("TextLabel",{Text="💳 決済処理中...",Size=UDim2.new(1,0,0,30),Position=UDim2.new(0,0,0,15),BackgroundTransparency=1,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=14,Parent=pop})
+            local pbar=C("Frame",{Size=UDim2.new(0.8,0,0,10),Position=UDim2.new(0.1,0,0,60),BackgroundColor3=C1(30,30,50),BorderSizePixel=0,Parent=pop})
+            C("UICorner",{CornerRadius=UDim.new(1,0),Parent=pbar})
+            local pfill=C("Frame",{Size=UDim2.new(0,0,1,0),BackgroundColor3=Th.Green,BorderSizePixel=0,Parent=pbar})
+            C("UICorner",{CornerRadius=UDim.new(1,0),Parent=pfill})
+            local ptxt=C("TextLabel",{Text="0%",Size=UDim2.new(1,0,0,20),Position=UDim2.new(0,0,0,80),BackgroundTransparency=1,TextColor3=Th.Tx,Font=Enum.Font.GothamBold,TextSize=12,Parent=pop})
+            
+            task.spawn(function()
+                for i=0,100 do
+                    pfill.Size=UDim2.new(i/100,0,1,0)
+                    ptxt.Text=i.."%"
+                    task.wait(0.015)
+                end
+                Money = Money - price
+                ShopBal.Text = T("balance")..": ¥ "..Money
+                ptxt.Text="✅ 完了"
+                task.wait(0.5)
+                pop:Destroy()
+                if onBuy then onBuy() end
+                -- 通知
+                local n=C("TextLabel",{Text="💳 "..T("thanks").." ("..name..")",Size=UDim2.new(0,300,0,36),Position=UDim2.new(0.5,-150,0,50),BackgroundColor3=Th.Green,BorderSizePixel=0,TextColor3=C1(255,255,255),Font=Enum.Font.GothamBold,TextSize=12,ZIndex=200,Parent=SG})
+                C("UICorner",{CornerRadius=UDim.new(0,10),Parent=n})
+                task.wait(2)
+                TW:Create(n,TweenInfo.new(0.5),{BackgroundTransparency=1,TextTransparency=1}):Play()
+                task.wait(0.5)
+                n:Destroy()
+            end)
+        else
+            local n=C("TextLabel",{Text="❌ "..T("noMoney"),Size=UDim2.new(0,220,0,36),Position=UDim2.new(0.5,-110,0,50),BackgroundColor3=C1(150,40,50),BorderSizePixel=0,TextColor3=C1(255,255,255),Font=Enum.Font.GothamBold,TextSize=12,ZIndex=200,Parent=SG})
+            C("UICorner",{CornerRadius=UDim.new(0,10),Parent=n})
+            task.wait(1.5)
+            n:Destroy()
+        end
+    end)
+end
+
+ShopItem(2, "God Mode+", "永遠の無敵モード", 500)
+ShopItem(80, "Fly Pass", "空を自由に飛ぶ", 1000)
+ShopItem(158, "Speed X2", "移動速度2倍", 800)
+ShopItem(236, "VIP Badge", "VIPバッジ表示", 1500)
+ShopItem(314, "Rainbow Trail", "虹色の足跡", 600)
+ShopItem(392, "Instant Kill", "近くの敵を即キル", 2000)
+
+-- Build
 local bt=Tb["b"]
 local function MP(pos,size,col,mat)
     local p=Instance.new("Part")
@@ -333,9 +424,17 @@ AB(bt,164,"st",function()
 end)
 MS(bt,200,"ps",1,20,S.BuildSize,"BuildSize")
 
+-- Visual
 local vt=Tb["v"]
 MK(vt,4,"rb","RainbowUI")
+-- ★ ショップボタン
+local ShopBtn=C("TextButton",{Text="💳 "..T("shop"),Size=UDim2.new(1,-16,0,32),Position=UDim2.new(0,8,0,40),BackgroundColor3=C1(50,40,20),BorderSizePixel=0,AutoButtonColor=false,TextColor3=Th.Gold,Font=Enum.Font.GothamBold,TextSize=12,Parent=vt})
+C("UICorner",{CornerRadius=UDim.new(0,10),Parent=ShopBtn})
+C("UIStroke",{Color=Th.Gold,Thickness=1.5,Parent=ShopBtn})
+ShopBtn.MouseButton1Click:Connect(function() Shop.Visible=true end)
+Reg(ShopBtn, "shop")
 
+-- Misc
 local mt=Tb["m"]
 AB(mt,4,"rj",function() TS:Teleport(game.PlaceId,LP) end)
 AB(mt,36,"sh",function()
@@ -364,16 +463,15 @@ local function UA()
         end
     end
     tpI.Text=L[Lg].saved..": "..(Sp and L[Lg].ok or L[Lg].none)
+    ShopBal.Text=L[Lg].balance..": ¥ "..Money
 end
 BJP.MouseButton1Click:Connect(function() Lg="JP" BJP.BackgroundColor3=Th.Sl BJP.TextColor3=Th.Tx BEN.BackgroundColor3=Th.Cd BEN.TextColor3=Th.Sb UA() end)
 BEN.MouseButton1Click:Connect(function() Lg="EN" BEN.BackgroundColor3=Th.Sl BEN.TextColor3=Th.Tx BJP.BackgroundColor3=Th.Cd BJP.TextColor3=Th.Sb UA() end)
 UA()
 
--- ライトの追従
 task.spawn(function()
     while task.wait(0.3) do
         if S.Light and LightObj then
-            local h=HM()
             local c=LP.Character
             if c then
                 local hrp=c:FindFirstChild("HumanoidRootPart") or c.PrimaryPart
@@ -382,8 +480,6 @@ task.spawn(function()
         end
     end
 end)
-
--- 壁歩き
 local WWConn
 task.spawn(function()
     while task.wait(0.2) do
@@ -392,17 +488,12 @@ task.spawn(function()
                 WWConn=RS.Heartbeat:Connect(function()
                     local c=LP.Character if not c then return end
                     local h=HM() if not h then return end
-                    if h.MoveDirection.Magnitude>0 then
-                        h:ChangeState(Enum.HumanoidStateType.GettingUp)
-                    end
+                    if h.MoveDirection.Magnitude>0 then h:ChangeState(Enum.HumanoidStateType.GettingUp) end
                 end)
             end
-        else
-            if WWConn then WWConn:Disconnect() WWConn=nil end
-        end
+        else if WWConn then WWConn:Disconnect() WWConn=nil end end
     end
 end)
-
 task.spawn(function() while task.wait(0.5) do if S.GodMode then local h=HM() if h then h.Health=h.MaxHealth end end end end)
 local NC
 task.spawn(function()
@@ -417,16 +508,13 @@ task.spawn(function()
         else if NC then NC:Disconnect() NC=nil end end
     end
 end)
-task.spawn(function() while task.wait(0.5) do if S.FullBright then LT.Brightness=3 LT.ClockTime=12 LT.Ambient=C1(178,178,178) LT.OutdoorAmbient=C1(178,178,178) LT.FogEnd=100000 end end end)
 task.spawn(function()
     while task.wait(0.1) do
         local h=HM()
-        if h then
-            if h.WalkSpeed~=S.WalkSpeed then h.WalkSpeed=S.WalkSpeed end
-        end
+        if h then if h.WalkSpeed~=S.WalkSpeed then h.WalkSpeed=S.WalkSpeed end end
     end
 end)
 UIS.JumpRequest:Connect(function() if S.InfiniteJump then local h=HM() if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end end end)
 
 Sel("p")
-print("[Fireworks v8.3] Loaded")
+print("[Fireworks v8.4] Loaded")
