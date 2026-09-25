@@ -63,7 +63,7 @@ local ScreenGui = Create("ScreenGui", {
     Parent = hui,
 })
 
--- ★ 上部の「Fireworks」ボタン（タップで開閉）
+-- ★ 上部の「Fireworks」ボタン
 local TopBtn = Create("TextButton", {
     Text = "Fireworks",
     Size = UDim2.new(0, 100, 0, 28),
@@ -81,7 +81,6 @@ Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = TopBtn })
 local TopStroke = Create("UIStroke", { Color = RainbowColor(1), Thickness = 1.5, Parent = TopBtn })
 table.insert(RainbowStrokes, { stroke = TopStroke, speed = 1 })
 
--- メインウィンドウ
 local Main = Create("Frame", {
     Size = UDim2.new(0, 170, 0, 340),
     Position = UDim2.new(0.5, -85, 0.5, -170),
@@ -113,7 +112,6 @@ Create("TextLabel", {
     TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = Header,
 })
 
--- 閉じるボタン
 local CloseBtn = Create("TextButton", {
     Text = "×", Size = UDim2.new(0, 24, 0, 24),
     Position = UDim2.new(1, -28, 0.5, -12),
@@ -128,7 +126,6 @@ CloseBtn.MouseButton1Click:Connect(function()
     Main.Visible = false
 end)
 
--- ドラッグ
 local dragging, dragStart, startPos
 Header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
