@@ -4,7 +4,7 @@ local UIS=game:GetService("UserInputService")
 local RS=game:GetService("RunService")
 if pg:FindFirstChild("VoidUI")then pg.VoidUI:Destroy()end
 local sg=Instance.new("ScreenGui",pg)sg.Name="VoidUI"sg.ResetOnSpawn=false
-local f=Instance.new("Frame",sg)f.Size=UDim2.new(0,320,0,480)f.Position=UDim2.new(.5,-160,.5,-240)f.BackgroundColor3=Color3.fromRGB(20,20,25)f.BackgroundTransparency=.3 f.Active=true
+local f=Instance.new("Frame",sg)f.Size=UDim2.new(0,400,0,380)f.Position=UDim2.new(.5,-200,.5,-190)f.BackgroundColor3=Color3.fromRGB(20,20,25)f.BackgroundTransparency=.3 f.Active=true
 Instance.new("UICorner",f).CornerRadius=UDim.new(0,12)
 local st=Instance.new("UIStroke",f)st.Color=Color3.fromRGB(0,255,150)st.Thickness=1.5 st.Transparency=.5
 local gd=Instance.new("UIGradient",f)gd.Color=ColorSequence.new(Color3.fromRGB(255,255,255),Color3.fromRGB(100,100,100))gd.Rotation=45
@@ -73,36 +73,9 @@ end)
 return b
 end
 local pPage=pages[1]
-local fl=false local bv,bg,cn
-local flyToggle=createToggle(pPage,"飛行",false,function(state)
-fl=state
-if fl then
-local c=p.Character if not c then fl=false return end
-local h=c:FindFirstChild("HumanoidRootPart")local hum=c:FindFirstChildOfClass("Humanoid")
-if not h or not hum then fl=false return end
-hum.PlatformStand=true
-bv=Instance.new("BodyVelocity",h)bv.MaxForce=Vector3.new(9e9,9e9,9e9)bv.Velocity=Vector3.zero
-bg=Instance.new("BodyGyro",h)bg.MaxTorque=Vector3.new(9e9,9e9,9e9)bg.P=10000 bg.D=100
-cn=RS.RenderStepped:Connect(function()
-if not fl or not bv or not bg then return end
-local c=p.Character if not c then return end
-local h=c:FindFirstChild("HumanoidRootPart") if not h then return end
-local cam=workspace.CurrentCamera local d=Vector3.zero
-if UIS:IsKeyDown(Enum.KeyCode.W)then d=d+cam.CFrame.LookVector end
-if UIS:IsKeyDown(Enum.KeyCode.S)then d=d-cam.CFrame.LookVector end
-if UIS:IsKeyDown(Enum.KeyCode.A)then d=d-cam.CFrame.RightVector end
-if UIS:IsKeyDown(Enum.KeyCode.D)then d=d+cam.CFrame.RightVector end
-if UIS:IsKeyDown(Enum.KeyCode.Space)then d=d+Vector3.new(0,1,0)end
-if UIS:IsKeyDown(Enum.KeyCode.LeftControl)then d=d-Vector3.new(0,1,0)end
-bv.Velocity=d*50 bg.CFrame=cam.CFrame
-end)
-else
-if bv then bv:Destroy()bv=nil end
-if bg then bg:Destroy()bg=nil end
-if cn then cn:Disconnect()cn=nil end
-local c=p.Character if c then local hum=c:FindFirstChildOfClass("Humanoid") if hum then hum.PlatformStand=false end end
-end
-end)
+local flyBtn=Instance.new("TextButton",pPage)flyBtn.Size=UDim2.new(1,0,0,35)flyBtn.Text="Fly 設定"flyBtn.BackgroundColor3=Color3.fromRGB(40,40,45)flyBtn.BackgroundTransparency=.4 flyBtn.TextColor3=Color3.fromRGB(0,255,150)flyBtn.Font=Enum.Font.GothamBold flyBtn.TextSize=13
+Instance.new("UICorner",flyBtn).CornerRadius=UDim.new(0,6)
+flyBtn.MouseButton1Click:Connect(function()flyFrame.Visible=true end)
 local spinFrame=Instance.new("Frame",pPage)spinFrame.Size=UDim2.new(1,0,0,35)spinFrame.BackgroundColor3=Color3.fromRGB(40,40,45)spinFrame.BackgroundTransparency=.4
 Instance.new("UICorner",spinFrame).CornerRadius=UDim.new(0,6)
 local spinLbl=Instance.new("TextLabel",spinFrame)spinLbl.Size=UDim2.new(.35,0,1,0)spinLbl.Position=UDim2.new(0,10,0,0)spinLbl.BackgroundTransparency=1 spinLbl.Text="スピン"spinLbl.TextColor3=Color3.fromRGB(200,200,200)spinLbl.Font=Enum.Font.Gotham spinLbl.TextSize=12 spinLbl.TextXAlignment=Enum.TextXAlignment.Left
@@ -193,6 +166,55 @@ if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
 end)
 else
 if ijConn then ijConn:Disconnect() ijConn=nil end
+end
+end)
+local flyFrame=Instance.new("Frame",sg)flyFrame.Size=UDim2.new(0,220,0,200)flyFrame.Position=UDim2.new(.5,-110,.5,-100)flyFrame.BackgroundColor3=Color3.fromRGB(20,20,25)flyFrame.BackgroundTransparency=.2 flyFrame.Visible=false flyFrame.Active=true
+Instance.new("UICorner",flyFrame).CornerRadius=UDim.new(0,12)
+Instance.new("UIStroke",flyFrame).Color=Color3.fromRGB(0,255,150)
+local flTitle=Instance.new("TextLabel",flyFrame)flTitle.Size=UDim2.new(1,0,0,30)flTitle.BackgroundTransparency=1 flTitle.Text="Fly Control"flTitle.TextColor3=Color3.fromRGB(0,255,150)flTitle.Font=Enum.Font.GothamBold flTitle.TextSize=14
+local flClose=Instance.new("TextButton",flyFrame)flClose.Size=UDim2.new(0,25,0,25)flClose.Position=UDim2.new(1,-30,0,5)flClose.Text="X"flClose.BackgroundColor3=Color3.fromRGB(40,40,45)flClose.BackgroundTransparency=.4 flClose.TextColor3=Color3.fromRGB(255,100,100)flClose.Font=Enum.Font.GothamBold
+Instance.new("UICorner",flClose).CornerRadius=UDim.new(0,6)
+flClose.MouseButton1Click:Connect(function()flyFrame.Visible=false end)
+local flSpeedLbl=Instance.new("TextLabel",flyFrame)flSpeedLbl.Size=UDim2.new(1,0,0,30)flSpeedLbl.Position=UDim2.new(0,0,0,40)flSpeedLbl.BackgroundTransparency=1 flSpeedLbl.Text="Speed: 0"flSpeedLbl.TextColor3=Color3.fromRGB(200,200,200)flSpeedLbl.Font=Enum.Font.GothamBold flSpeedLbl.TextSize=14
+local upBtn=Instance.new("TextButton",flyFrame)upBtn.Size=UDim2.new(.4,0,0,30)upBtn.Position=UDim2.new(.05,0,0,80)upBtn.Text="UP"upBtn.BackgroundColor3=Color3.fromRGB(40,40,45)upBtn.BackgroundTransparency=.4 upBtn.TextColor3=Color3.fromRGB(200,200,200)upBtn.Font=Enum.Font.GothamBold
+Instance.new("UICorner",upBtn).CornerRadius=UDim.new(0,6)
+local downBtn=Instance.new("TextButton",flyFrame)downBtn.Size=UDim2.new(.4,0,0,30)downBtn.Position=UDim2.new(.55,0,0,80)downBtn.Text="DOWN"downBtn.BackgroundColor3=Color3.fromRGB(40,40,45)downBtn.BackgroundTransparency=.4 downBtn.TextColor3=Color3.fromRGB(200,200,200)downBtn.Font=Enum.Font.GothamBold
+Instance.new("UICorner",downBtn).CornerRadius=UDim.new(0,6)
+local currentSpeed=0
+upBtn.MouseButton1Click:Connect(function()currentSpeed=currentSpeed+1 flSpeedLbl.Text="Speed: "..currentSpeed end)
+downBtn.MouseButton1Click:Connect(function()currentSpeed=math.max(0,currentSpeed-1) flSpeedLbl.Text="Speed: "..currentSpeed end)
+local fl=false local bv,bg,cn
+local flyToggle=Instance.new("TextButton",flyFrame)flyToggle.Size=UDim2.new(.8,0,0,35)flyToggle.Position=UDim2.new(.1,0,0,130)flyToggle.Text="Fly: OFF"flyToggle.BackgroundColor3=Color3.fromRGB(40,40,45)flyToggle.BackgroundTransparency=.4 flyToggle.TextColor3=Color3.fromRGB(200,200,200)flyToggle.Font=Enum.Font.GothamBold
+Instance.new("UICorner",flyToggle).CornerRadius=UDim.new(0,6)
+flyToggle.MouseButton1Click:Connect(function()
+fl=not fl
+if fl then
+local c=p.Character if not c then fl=false return end
+local h=c:FindFirstChild("HumanoidRootPart")local hum=c:FindFirstChildOfClass("Humanoid")
+if not h or not hum then fl=false return end
+hum.PlatformStand=true
+bv=Instance.new("BodyVelocity",h)bv.MaxForce=Vector3.new(9e9,9e9,9e9)bv.Velocity=Vector3.zero
+bg=Instance.new("BodyGyro",h)bg.MaxTorque=Vector3.new(9e9,9e9,9e9)bg.P=10000 bg.D=100
+cn=RS.RenderStepped:Connect(function()
+if not fl or not bv or not bg then return end
+local c=p.Character if not c then return end
+local h=c:FindFirstChild("HumanoidRootPart") if not h then return end
+local cam=workspace.CurrentCamera local d=Vector3.zero
+if UIS:IsKeyDown(Enum.KeyCode.W)then d=d+cam.CFrame.LookVector end
+if UIS:IsKeyDown(Enum.KeyCode.S)then d=d-cam.CFrame.LookVector end
+if UIS:IsKeyDown(Enum.KeyCode.A)then d=d-cam.CFrame.RightVector end
+if UIS:IsKeyDown(Enum.KeyCode.D)then d=d+cam.CFrame.RightVector end
+if UIS:IsKeyDown(Enum.KeyCode.Space)then d=d+Vector3.new(0,1,0)end
+if UIS:IsKeyDown(Enum.KeyCode.LeftControl)then d=d-Vector3.new(0,1,0)end
+bv.Velocity=d*currentSpeed bg.CFrame=cam.CFrame
+end)
+flyToggle.Text="Fly: ON"flyToggle.TextColor3=Color3.fromRGB(0,255,150)
+else
+if bv then bv:Destroy()bv=nil end
+if bg then bg:Destroy()bg=nil end
+if cn then cn:Disconnect()cn=nil end
+local c=p.Character if c then local hum=c:FindFirstChildOfClass("Humanoid") if hum then hum.PlatformStand=false end end
+flyToggle.Text="Fly: OFF"flyToggle.TextColor3=Color3.fromRGB(200,200,200)
 end
 end)
 local tPage=pages[2]
@@ -322,6 +344,11 @@ cInfo.Text="Enter the code" cBtn.Text="Submit"
 bpTitle.Text="Build Menu" bpClose.Text="X" bpLbl.Text="Select object"
 placeToggle.Text="Place: "..(placeMode and "ON" or "OFF")
 openBuildBtn.Text="Open Build Menu"
+flyBtn.Text="Fly Settings"
+flTitle.Text="Fly Control"
+upBtn.Text="UP"
+downBtn.Text="DOWN"
+flyToggle.Text=fl and "Fly: ON" or "Fly: OFF"
 else
 lb.Text="日本語🇯🇵"
 for i,b in ipairs(btns)do b.Text=tabNames[i] end
@@ -331,6 +358,11 @@ cInfo.Text="コードを入力してください" cBtn.Text="送信"
 bpTitle.Text="建築メニュー" bpLbl.Text="設置するものを選択"
 placeToggle.Text="設置モード: "..(placeMode and "ON" or "OFF")
 openBuildBtn.Text="建築メニューを開く"
+flyBtn.Text="Fly 設定"
+flTitle.Text="Fly Control"
+upBtn.Text="UP"
+downBtn.Text="DOWN"
+flyToggle.Text=fl and "Fly: ON" or "Fly: OFF"
 end
 end)
 p.CharacterAdded:Connect(function(ch)
