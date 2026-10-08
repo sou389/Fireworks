@@ -1,124 +1,133 @@
-local p = game.Players.LocalPlayer
-local pg = p:WaitForChild("PlayerGui")
-if pg:FindFirstChild("VoidUI") then pg.VoidUI:Destroy() end
-
-local sg = Instance.new("ScreenGui", pg) sg.Name = "VoidUI" sg.ResetOnSpawn = false
-local f = Instance.new("Frame", sg) f.Size = UDim2.new(0, 250, 0, 400) f.Position = UDim2.new(0.5, -125, 0.5, -200) f.BackgroundColor3 = Color3.fromRGB(30, 30, 35) f.Active = true f.Draggable = true
-Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8)
-
-local l = Instance.new("UIListLayout", f) l.Padding = UDim.new(0, 6) l.SortOrder = Enum.SortOrder.LayoutOrder
-
-local title = Instance.new("TextLabel", f)
-title.Size = UDim2.new(1, 0, 0, 30) title.Text = "Void" title.TextColor3 = Color3.fromRGB(0, 255, 150) title.Font = Enum.Font.GothamBold title.TextSize = 18 title.BackgroundTransparency = 1 title.LayoutOrder = 1
-
-local top = Instance.new("Frame", f) top.Size = UDim2.new(1, -10, 0, 25) top.BackgroundTransparency = 1 top.LayoutOrder = 2
-
-local close = Instance.new("TextButton", top)
-close.Size = UDim2.new(0, 25, 1, 0) close.Position = UDim2.new(1, -25, 0, 0) close.Text = "X" close.BackgroundColor3 = Color3.fromRGB(40, 40, 45) close.TextColor3 = Color3.fromRGB(255, 100, 100) close.Font = Enum.Font.GothamBold
-Instance.new("UICorner", close).CornerRadius = UDim.new(0, 6)
-close.MouseButton1Click:Connect(function() sg:Destroy() end)
-
-local langBtn = Instance.new("TextButton", top)
-langBtn.Size = UDim2.new(0, 60, 1, 0) langBtn.Position = UDim2.new(1, -90, 0, 0) langBtn.Text = "EN" langBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45) langBtn.TextColor3 = Color3.fromRGB(255, 255, 255) langBtn.Font = Enum.Font.Gotham langBtn.TextSize = 12
-Instance.new("UICorner", langBtn).CornerRadius = UDim.new(0, 6)
-
-local flyBtn = Instance.new("TextButton", f)
-flyBtn.Size = UDim2.new(1, -20, 0, 35) flyBtn.Text = "Fly: OFF" flyBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45) flyBtn.TextColor3 = Color3.fromRGB(200, 200, 200) flyBtn.Font = Enum.Font.Gotham flyBtn.LayoutOrder = 3
-Instance.new("UICorner", flyBtn).CornerRadius = UDim.new(0, 6)
-
-local flying = false local bv, bg, conn
-flyBtn.MouseButton1Click:Connect(function()
-    flying = not flying
-    if flying then
-        local hrp = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
-        if not hrp then flying = false return end
-        bv = Instance.new("BodyVelocity", hrp) bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-        bg = Instance.new("BodyGyro", hrp) bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9) bg.P = 10000
-        conn = game:GetService("RunService").RenderStepped:Connect(function()
-            if not flying then return end
-            local h = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
-            if not h then return end
-            local cam = workspace.CurrentCamera local dir = Vector3.new() local uis = game:GetService("UserInputService")
-            if uis:IsKeyDown(Enum.KeyCode.W) then dir = dir + cam.CFrame.LookVector end
-            if uis:IsKeyDown(Enum.KeyCode.S) then dir = dir - cam.CFrame.LookVector end
-            if uis:IsKeyDown(Enum.KeyCode.A) then dir = dir - cam.CFrame.RightVector end
-            if uis:IsKeyDown(Enum.KeyCode.D) then dir = dir + cam.CFrame.RightVector end
-            if uis:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0, 1, 0) end
-            if uis:IsKeyDown(Enum.KeyCode.LeftControl) then dir = dir - Vector3.new(0, 1, 0) end
-            bv.Velocity = dir * 50 bg.CFrame = cam.CFrame
-        end)
-        flyBtn.Text = "Fly: ON" flyBtn.TextColor3 = Color3.fromRGB(0, 255, 150)
-    else
-        if bv then bv:Destroy() end if bg then bg:Destroy() end if conn then conn:Disconnect() end
-        flyBtn.Text = "Fly: OFF" flyBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    end
+local p=game.Players.LocalPlayer
+local pg=p:WaitForChild("PlayerGui")
+if pg:FindFirstChild("VoidUI")then pg.VoidUI:Destroy()end
+local sg=Instance.new("ScreenGui",pg)sg.Name="VoidUI"sg.ResetOnSpawn=false
+local f=Instance.new("Frame",sg)f.Size=UDim2.new(0,250,0,480)f.Position=UDim2.new(.5,-125,.5,-240)f.BackgroundColor3=Color3.fromRGB(30,30,35)f.Active=true
+Instance.new("UICorner",f).CornerRadius=UDim.new(0,8)
+local floatBtn=Instance.new("TextButton",sg)floatBtn.Size=UDim2.new(0,45,0,45)floatBtn.Position=UDim2.new(0,15,.5,-22.5)floatBtn.BackgroundColor3=Color3.fromRGB(30,30,35)floatBtn.Text="V"floatBtn.TextColor3=Color3.fromRGB(0,255,150)floatBtn.Font=Enum.Font.GothamBold floatBtn.TextSize=22 floatBtn.Visible=false
+Instance.new("UICorner",floatBtn).CornerRadius=UDim.new(0,8)
+local top=Instance.new("Frame",f)top.Size=UDim2.new(1,0,0,60)top.BackgroundTransparency=1
+local title=Instance.new("TextLabel",top)title.Size=UDim2.new(.5,0,0,30)title.Position=UDim2.new(0,10,0,0)title.Text="Void"title.TextColor3=Color3.fromRGB(0,255,150)title.Font=Enum.Font.GothamBold title.TextSize=20 title.BackgroundTransparency=1 title.TextXAlignment=Enum.TextXAlignment.Left
+local discord=Instance.new("TextButton",top)discord.Size=UDim2.new(1,-20,0,20)discord.Position=UDim2.new(0,10,0,28)discord.BackgroundTransparency=1 discord.Text="discord.gg/Znj8eBfa9"discord.TextColor3=Color3.fromRGB(150,150,150)discord.Font=Enum.Font.Gotham discord.TextSize=11 discord.TextXAlignment=Enum.TextXAlignment.Left
+discord.MouseButton1Click:Connect(function()if setclipboard then setclipboard("https://discord.gg/Znj8eBfa9")end end)
+local close=Instance.new("TextButton",top)close.Size=UDim2.new(0,25,0,25)close.Position=UDim2.new(1,-30,0,5)close.Text="X"close.BackgroundColor3=Color3.fromRGB(40,40,45)close.TextColor3=Color3.fromRGB(255,100,100)close.Font=Enum.Font.GothamBold
+Instance.new("UICorner",close).CornerRadius=UDim.new(0,6)
+close.MouseButton1Click:Connect(function()f.Visible=false floatBtn.Visible=true end)
+floatBtn.MouseButton1Click:Connect(function()f.Visible=true floatBtn.Visible=false end)
+local lb=Instance.new("TextButton",top)lb.Size=UDim2.new(0,80,0,25)lb.Position=UDim2.new(1,-115,0,5)lb.Text="日本語🇯🇵"lb.BackgroundColor3=Color3.fromRGB(40,40,45)lb.TextColor3=Color3.fromRGB(255,255,255)lb.Font=Enum.Font.Gotham lb.TextSize=11
+Instance.new("UICorner",lb).CornerRadius=UDim.new(0,6)
+local tabBar=Instance.new("Frame",f)tabBar.Size=UDim2.new(1,-20,0,25)tabBar.Position=UDim2.new(0,10,0,65)tabBar.BackgroundTransparency=1
+local btnP=Instance.new("TextButton",tabBar)btnP.Size=UDim2.new(.5,-5,1,0)btnP.Text="プレイヤー"btnP.BackgroundColor3=Color3.fromRGB(0,255,150)btnP.TextColor3=Color3.fromRGB(0,0,0)btnP.Font=Enum.Font.GothamBold btnP.TextSize=12
+Instance.new("UICorner",btnP).CornerRadius=UDim.new(0,6)
+local btnT=Instance.new("TextButton",tabBar)btnT.Size=UDim2.new(.5,-5,1,0)btnT.Position=UDim2.new(.5,5,0,0)btnT.Text="テレポート"btnT.BackgroundColor3=Color3.fromRGB(40,40,45)btnT.TextColor3=Color3.fromRGB(200,200,200)btnT.Font=Enum.Font.Gotham btnT.TextSize=12
+Instance.new("UICorner",btnT).CornerRadius=UDim.new(0,6)
+local content=Instance.new("Frame",f)content.Size=UDim2.new(1,-20,1,-110)content.Position=UDim2.new(0,10,0,100)content.BackgroundTransparency=1
+local pPage=Instance.new("Frame",content)pPage.Size=UDim2.new(1,0,1,0)pPage.BackgroundTransparency=1 pPage.Visible=true
+local pL=Instance.new("UIListLayout",pPage)pL.Padding=UDim.new(0,6)
+local tPage=Instance.new("Frame",content)tPage.Size=UDim2.new(1,0,1,0)tPage.BackgroundTransparency=1 tPage.Visible=false
+local tL=Instance.new("UIListLayout",tPage)tL.Padding=UDim.new(0,4)
+btnP.MouseButton1Click:Connect(function()pPage.Visible=true tPage.Visible=false btnP.BackgroundColor3=Color3.fromRGB(0,255,150)btnP.TextColor3=Color3.fromRGB(0,0,0)btnT.BackgroundColor3=Color3.fromRGB(40,40,45)btnT.TextColor3=Color3.fromRGB(200,200,200)end)
+btnT.MouseButton1Click:Connect(function()pPage.Visible=false tPage.Visible=true btnT.BackgroundColor3=Color3.fromRGB(0,255,150)btnT.TextColor3=Color3.fromRGB(0,0,0)btnP.BackgroundColor3=Color3.fromRGB(40,40,45)btnP.TextColor3=Color3.fromRGB(200,200,200)end)
+local fl=false local bv,bg,cn
+local fb=Instance.new("TextButton",pPage)fb.Size=UDim2.new(1,0,0,35)fb.Text="飛行: OFF"fb.BackgroundColor3=Color3.fromRGB(40,40,45)fb.TextColor3=Color3.fromRGB(200,200,200)fb.Font=Enum.Font.Gotham
+Instance.new("UICorner",fb).CornerRadius=UDim.new(0,6)
+fb.MouseButton1Click:Connect(function()
+fl=not fl
+if fl then
+local h=p.Character and p.Character:FindFirstChild("Humanoid")
+if not h then fl=false return end
+h.WalkSpeed=0
+bv=Instance.new("BodyVelocity",h.Parent.HumanoidRootPart)bv.MaxForce=Vector3.new(9e9,9e9,9e9)
+bg=Instance.new("BodyGyro",h.Parent.HumanoidRootPart)bg.MaxTorque=Vector3.new(9e9,9e9,9e9)bg.P=10000
+cn=game:GetService("RunService").RenderStepped:Connect(function()
+if not fl then return end
+local h=p.Character and p.Character:FindFirstChild("Humanoid")
+if not h then return end
+local cam=workspace.CurrentCamera local dir=h.MoveDirection local vel=dir*50
+if h.Jump then vel=vel+Vector3.new(0,50,0)end
+if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftControl)then vel=vel-Vector3.new(0,50,0)end
+bv.Velocity=vel bg.CFrame=cam.CFrame
 end)
-local function createSlider(name, min, max, def, order, cb)
-    local bg = Instance.new("Frame", f) bg.Size = UDim2.new(1, -20, 0, 45) bg.BackgroundColor3 = Color3.fromRGB(35, 35, 40) bg.LayoutOrder = order
-    Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 6)
-    local lbl = Instance.new("TextLabel", bg) lbl.Name = "NameLabel" lbl.Size = UDim2.new(0.6, 0, 0, 20) lbl.Position = UDim2.new(0, 10, 0, 5) lbl.Text = name lbl.TextColor3 = Color3.fromRGB(200, 200, 200) lbl.TextSize = 12 lbl.Font = Enum.Font.Gotham lbl.BackgroundTransparency = 1 lbl.TextXAlignment = Enum.TextXAlignment.Left
-    local val = Instance.new("TextLabel", bg) val.Name = "ValueLabel" val.Size = UDim2.new(0, 40, 0, 20) val.Position = UDim2.new(1, -50, 0, 5) val.Text = tostring(def) val.TextColor3 = Color3.fromRGB(0, 255, 150) val.TextSize = 12 val.Font = Enum.Font.GothamBold val.BackgroundTransparency = 1
-    local bar = Instance.new("Frame", bg) bar.Size = UDim2.new(1, -20, 0, 6) bar.Position = UDim2.new(0, 10, 1, -12) bar.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
-    Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 3)
-    local fill = Instance.new("Frame", bar) fill.Size = UDim2.new((def-min)/(max-min), 0, 1, 0) fill.BackgroundColor3 = Color3.fromRGB(0, 255, 150)
-    Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 3)
-    local knob = Instance.new("TextButton", bar) knob.Size = UDim2.new(0, 16, 0, 16) knob.Position = UDim2.new(fill.Size.X.Scale, -8, 0.5, -8) knob.BackgroundColor3 = Color3.fromRGB(200, 200, 200) knob.Text = ""
-    Instance.new("UICorner", knob).CornerRadius = UDim.new(0, 8)
-    local dragging = false
-    knob.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging = true end end)
-    bar.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging = true end end)
-    game:GetService("UserInputService").InputChanged:Connect(function(i)
-        if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-            local rx = math.clamp((i.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-            local v = math.floor(min + (max-min)*rx)
-            val.Text = tostring(v) fill.Size = UDim2.new(rx, 0, 1, 0) knob.Position = UDim2.new(rx, -8, 0.5, -8) cb(v)
-        end
-    end)
-    game:GetService("UserInputService").InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging = false end end)
-    return bg
+fb.Text="飛行: ON"fb.TextColor3=Color3.fromRGB(0,255,150)
+else
+if p.Character and p.Character:FindFirstChild("Humanoid")then p.Character.Humanoid.WalkSpeed=16 end
+if bv then bv:Destroy()end if bg then bg:Destroy()end if cn then cn:Disconnect()end
+fb.Text="飛行: OFF"fb.TextColor3=Color3.fromRGB(200,200,200)
 end
-
-local ws = createSlider("Walk Speed", 0, 200, 16, 4, function(v) if p.Character and p.Character:FindFirstChild("Humanoid") then p.Character.Humanoid.WalkSpeed = v end end)
-local jp = createSlider("Jump Power", 0, 500, 50, 5, function(v) if p.Character and p.Character:FindFirstChild("Humanoid") then p.Character.Humanoid.UseJumpPower = true p.Character.Humanoid.JumpPower = v end end)
-local tpBtn = Instance.new("TextButton", f) tpBtn.Size = UDim2.new(1, -20, 0, 35) tpBtn.Text = "Teleport: Select" tpBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45) tpBtn.TextColor3 = Color3.fromRGB(200, 200, 200) tpBtn.Font = Enum.Font.Gotham tpBtn.LayoutOrder = 6
-Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 6)
-local tpFrame = Instance.new("ScrollingFrame", f) tpFrame.Size = UDim2.new(1, -20, 0, 100) tpFrame.BackgroundTransparency = 1 tpFrame.ScrollBarThickness = 4 tpFrame.Visible = false tpFrame.LayoutOrder = 7
-local tpl = Instance.new("UIListLayout", tpFrame) tpl.Padding = UDim.new(0, 4)
-tpBtn.MouseButton1Click:Connect(function()
-    tpFrame.Visible = not tpFrame.Visible
-    if tpFrame.Visible then
-        for _, c in ipairs(tpFrame:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
-        for _, pl in ipairs(game.Players:GetPlayers()) do
-            if pl ~= p then
-                local b = Instance.new("TextButton", tpFrame) b.Size = UDim2.new(1, -5, 0, 30) b.Text = pl.Name b.BackgroundColor3 = Color3.fromRGB(35, 35, 40) b.TextColor3 = Color3.fromRGB(200, 200, 200) b.Font = Enum.Font.Gotham b.TextSize = 12
-                Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
-                b.MouseButton1Click:Connect(function()
-                    local char = pl.Character
-                    if char and char:FindFirstChild("HumanoidRootPart") and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                        p.Character.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
-                    end
-                end)
-            end
-        end
-    end
 end)
-
-langBtn.MouseButton1Click:Connect(function()
-    if langBtn.Text == "EN" then
-        langBtn.Text = "JA" flyBtn.Text = flying and "飛行: ON" or "飛行: OFF" tpBtn.Text = "デレポート: 選択"
-        ws.NameLabel.Text = "歩行速度" jp.NameLabel.Text = "ジャンプ力"
-    else
-        langBtn.Text = "EN" flyBtn.Text = flying and "Fly: ON" or "Fly: OFF" tpBtn.Text = "Teleport: Select"
-        ws.NameLabel.Text = "Walk Speed" jp.NameLabel.Text = "Jump Power"
-    end
+local function sl(n,mi,ma,de,o,cb)
+local b=Instance.new("Frame",pPage)b.Size=UDim2.new(1,0,0,45)b.BackgroundColor3=Color3.fromRGB(35,35,40)b.LayoutOrder=o
+Instance.new("UICorner",b).CornerRadius=UDim.new(0,6)
+local lbl=Instance.new("TextLabel",b)lbl.Name="NameLabel"lbl.Size=UDim2.new(.6,0,0,20)lbl.Position=UDim2.new(0,10,0,5)lbl.Text=n lbl.TextColor3=Color3.fromRGB(200,200,200)lbl.TextSize=12 lbl.Font=Enum.Font.Gotham lbl.BackgroundTransparency=1 lbl.TextXAlignment=Enum.TextXAlignment.Left
+local v=Instance.new("TextLabel",b)v.Name="ValueLabel"v.Size=UDim2.new(0,40,0,20)v.Position=UDim2.new(1,-50,0,5)v.Text=tostring(de)v.TextColor3=Color3.fromRGB(0,255,150)v.TextSize=12 v.Font=Enum.Font.GothamBold v.BackgroundTransparency=1
+local bar=Instance.new("Frame",b)bar.Size=UDim2.new(1,-20,0,6)bar.Position=UDim2.new(0,10,1,-12)bar.BackgroundColor3=Color3.fromRGB(60,60,65)
+Instance.new("UICorner",bar).CornerRadius=UDim.new(0,3)
+local fill=Instance.new("Frame",bar)fill.Size=UDim2.new((de-mi)/(ma-mi),0,1,0)fill.BackgroundColor3=Color3.fromRGB(0,255,150)
+Instance.new("UICorner",fill).CornerRadius=UDim.new(0,3)
+local knob=Instance.new("TextButton",bar)knob.Size=UDim2.new(0,16,0,16)knob.Position=UDim2.new(fill.Size.X.Scale,-8,.5,-8)knob.BackgroundColor3=Color3.fromRGB(200,200,200)knob.Text=""
+Instance.new("UICorner",knob).CornerRadius=UDim.new(0,8)
+local dr=false
+knob.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dr=true end end)
+bar.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dr=true end end)
+game:GetService("UserInputService").InputChanged:Connect(function(i)
+if dr and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then
+local rx=math.clamp((i.Position.X-bar.AbsolutePosition.X)/bar.AbsoluteSize.X,0,1)
+local vv=math.floor(mi+(ma-mi)*rx)
+v.Text=tostring(vv)fill.Size=UDim2.new(rx,0,1,0)knob.Position=UDim2.new(rx,-8,.5,-8)cb(vv)
+end
 end)
-
-p.CharacterAdded:Connect(function(char)
-    task.wait(1)
-    local humanoid = char:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        humanoid.WalkSpeed = 16
-        humanoid.UseJumpPower = true
-        humanoid.JumpPower = 50
-    end
+game:GetService("UserInputService").InputEnded:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dr=false end end)
+return b
+end
+local ws=sl("歩行速度",0,200,16,4,function(v)if p.Character and p.Character:FindFirstChild("Humanoid")then p.Character.Humanoid.WalkSpeed=v end end)
+local jp=sl("ジャンプ力",0,500,50,5,function(v)if p.Character and p.Character:FindFirstChild("Humanoid")then p.Character.Humanoid.UseJumpPower=true p.Character.Humanoid.JumpPower=v end end)
+local rf=Instance.new("TextButton",tPage)rf.Size=UDim2.new(1,0,0,30)rf.Text="更新"rf.BackgroundColor3=Color3.fromRGB(0,255,150)rf.TextColor3=Color3.fromRGB(0,0,0)rf.Font=Enum.Font.GothamBold rf.TextSize=12
+Instance.new("UICorner",rf).CornerRadius=UDim.new(0,6)
+local sf=Instance.new("ScrollingFrame",tPage)sf.Size=UDim2.new(1,0,1,-40)sf.Position=UDim2.new(0,0,0,35)sf.BackgroundTransparency=1 sf.ScrollBarThickness=4
+local sl2=Instance.new("UIListLayout",sf)sl2.Padding=UDim.new(0,4)
+local function upd()
+for _,ch in ipairs(sf:GetChildren())do if ch:IsA("TextButton")then ch:Destroy()end end
+for _,pl in ipairs(game.Players:GetPlayers())do
+if pl~=p then
+local b=Instance.new("TextButton",sf)b.Size=UDim2.new(1,-5,0,30)b.Text=pl.Name b.BackgroundColor3=Color3.fromRGB(35,35,40)b.TextColor3=Color3.fromRGB(200,200,200)b.Font=Enum.Font.Gotham b.TextSize=12
+Instance.new("UICorner",b).CornerRadius=UDim.new(0,6)
+b.MouseButton1Click:Connect(function()
+local ch=pl.Character
+if ch and ch:FindFirstChild("HumanoidRootPart")and p.Character and p.Character:FindFirstChild("HumanoidRootPart")then
+p.Character.HumanoidRootPart.CFrame=ch.HumanoidRootPart.CFrame*CFrame.new(0,0,3)
+end
+end)
+end
+end
+end
+rf.MouseButton1Click:Connect(upd)upd()
+local dragging,dragInput,dragStart,startPos
+top.InputBegan:Connect(function(input)
+if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+dragging=true dragStart=input.Position startPos=f.Position
+input.Changed:Connect(function()if input.UserInputState==Enum.UserInputState.End then dragging=false end end)
+end
+end)
+top.InputChanged:Connect(function(input)
+if input.UserInputType==Enum.UserInputType.MouseMovement or input.UserInputType==Enum.UserInputType.Touch then dragInput=input end
+end)
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+if input==dragInput and dragging then
+local delta=input.Position-dragStart
+f.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+delta.X,startPos.Y.Scale,startPos.Y.Offset+delta.Y)
+end
+end)
+lb.MouseButton1Click:Connect(function()
+if lb.Text=="日本語🇯🇵"then
+lb.Text="English🇺🇸"fb.Text=fl and "Fly: ON" or "Fly: OFF"btnP.Text="Players"btnT.Text="Teleport"rf.Text="Refresh"
+ws.NameLabel.Text="Walk Speed"jp.NameLabel.Text="Jump Power"
+else
+lb.Text="日本語🇯🇵"fb.Text=fl and "飛行: ON" or "飛行: OFF"btnP.Text="プレイヤー"btnT.Text="テレポート"rf.Text="更新"
+ws.NameLabel.Text="歩行速度"jp.NameLabel.Text="ジャンプ力"
+end
+end)
+p.CharacterAdded:Connect(function(ch)
+task.wait(1)
+local h=ch:FindFirstChildOfClass("Humanoid")
+if h then h.WalkSpeed=16 h.UseJumpPower=true h.JumpPower=50 end
 end)
