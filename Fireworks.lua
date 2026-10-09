@@ -23,7 +23,7 @@ st.Color=Color3.fromRGB(0,255,150)
 st.Thickness=1
 st.Transparency=0.6
 
--- 最小化ボタン（V）
+-- Vボタン
 local floatBtn=Instance.new("TextButton")
 floatBtn.Size=UDim2.new(0,45,0,45)
 floatBtn.Position=UDim2.new(0,15,0.5,-22.5)
@@ -38,7 +38,8 @@ Instance.new("UICorner",floatBtn).CornerRadius=UDim.new(0,12)
 local fs=Instance.new("UIStroke",floatBtn)
 fs.Color=Color3.fromRGB(0,255,150)
 floatBtn.MouseButton1Click:Connect(function()
-f.Visible=true floatBtn.Visible=false
+f.Visible=true
+floatBtn.Visible=false
 end)
 
 -- トップバー
@@ -47,16 +48,14 @@ top.Size=UDim2.new(1,0,0,45)
 top.BackgroundTransparency=1
 top.Parent=f
 
--- ドラッグ用の透明ボタン（指で動かすため）
+-- ドラッグ移動用エリア（透明）
 local dragArea=Instance.new("TextButton")
-dragArea.Size=UDim2.new(1,-150,1,0)
+dragArea.Size=UDim2.new(1,-160,1,0)
 dragArea.BackgroundTransparency=1
 dragArea.Text=""
 dragArea.Parent=top
-local dragging=false
-local dragInput=nil
-local dragStart=nil
-local startPos=nil
+
+local dragging,dragInput,dragStart,startPos
 local function update(input)
 local delta=input.Position-dragStart
 f.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+delta.X,startPos.Y.Scale,startPos.Y.Offset+delta.Y)
@@ -93,7 +92,6 @@ logo.Parent=top
 Instance.new("UICorner",logo).CornerRadius=UDim.new(0,8)
 local ls=Instance.new("UIStroke",logo)
 ls.Color=Color3.fromRGB(0,255,150)
-
 local title=Instance.new("TextLabel")
 title.Size=UDim2.new(0,200,0,20)
 title.Position=UDim2.new(0,55,0,5)
@@ -104,7 +102,6 @@ title.Font=Enum.Font.GothamBold
 title.TextSize=16
 title.TextXAlignment=Enum.TextXAlignment.Left
 title.Parent=top
-
 local discord=Instance.new("TextButton")
 discord.Size=UDim2.new(0,200,0,15)
 discord.Position=UDim2.new(0,55,0,25)
@@ -119,7 +116,7 @@ discord.MouseButton1Click:Connect(function()
 if setclipboard then setclipboard("https://discord.gg/Znj8eBfa9")end
 end)
 
--- 右上のボタン類
+-- 右上のボタン
 local lb=Instance.new("TextButton")
 lb.Size=UDim2.new(0,90,0,25)
 lb.Position=UDim2.new(1,-210,0,10)
@@ -129,6 +126,7 @@ lb.BackgroundTransparency=0.4
 lb.TextColor3=Color3.fromRGB(255,255,255)
 lb.Font=Enum.Font.Gotham
 lb.TextSize=11
+lb.ZIndex=2
 lb.Parent=top
 Instance.new("UICorner",lb).CornerRadius=UDim.new(0,6)
 
@@ -140,6 +138,7 @@ minBtn.BackgroundColor3=Color3.fromRGB(40,40,45)
 minBtn.BackgroundTransparency=0.4
 minBtn.TextColor3=Color3.fromRGB(255,255,255)
 minBtn.Font=Enum.Font.GothamBold
+minBtn.ZIndex=2
 minBtn.Parent=top
 Instance.new("UICorner",minBtn).CornerRadius=UDim.new(0,6)
 
@@ -151,15 +150,18 @@ close.BackgroundColor3=Color3.fromRGB(40,40,45)
 close.BackgroundTransparency=0.4
 close.TextColor3=Color3.fromRGB(255,100,100)
 close.Font=Enum.Font.GothamBold
+close.ZIndex=2
 close.Parent=top
 Instance.new("UICorner",close).CornerRadius=UDim.new(0,6)
-
 close.MouseButton1Click:Connect(function()
-f.Visible=false floatBtn.Visible=true
+f.Visible=false
+floatBtn.Visible=true
 end)
 minBtn.MouseButton1Click:Connect(function()
-f.Visible=false floatBtn.Visible=true
+f.Visible=false
+floatBtn.Visible=true
 end)
+
 -- サイドバー
 local sidebar=Instance.new("Frame")
 sidebar.Size=UDim2.new(0,150,1,-55)
@@ -169,11 +171,73 @@ sidebar.BackgroundTransparency=0.3
 sidebar.Parent=f
 Instance.new("UICorner",sidebar).CornerRadius=UDim.new(0,10)
 
-local tabNames={"プレイヤー","ツール","ターゲット","その他","デレポート"}
-local enNames={"Player","Tools","Target","Others","Teleport"}
+-- プロフィール（左下）
+local profile=Instance.new("Frame")
+profile.Size=UDim2.new(1,-10,0,60)
+profile.Position=UDim2.new(0,5,1,-70)
+profile.BackgroundColor3=Color3.fromRGB(35,35,40)
+profile.BackgroundTransparency=0.5
+profile.Parent=sidebar
+Instance.new("UICorner",profile).CornerRadius=UDim.new(0,8)
+
+local pImg=Instance.new("ImageLabel")
+pImg.Size=UDim2.new(0,40,0,40)
+pImg.Position=UDim2.new(0,10,0,10)
+pImg.BackgroundColor3=Color3.fromRGB(0,255,150)
+pImg.Text=""
+pImg.Parent=profile
+Instance.new("UICorner",pImg).CornerRadius=UDim.new(0,20)
+
+local success,thumb=pcall(function()
+return game:GetService("Players"):GetUserThumbnailAsync(p.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size150x150)
+end)
+if success and thumb then
+pImg.Image=thumb
+end
+
+local pName=Instance.new("TextLabel")
+pName.Size=UDim2.new(1,-60,0,15)
+pName.Position=UDim2.new(0,55,0,14)
+pName.BackgroundTransparency=1
+pName.Text=p.DisplayName
+pName.TextColor3=Color3.fromRGB(255,255,255)
+pName.Font=Enum.Font.GothamBold
+pName.TextSize=12
+pName.TextXAlignment=Enum.TextXAlignment.Left
+pName.Parent=profile
+
+local pHandle=Instance.new("TextLabel")
+pHandle.Size=UDim2.new(1,-60,0,15)
+pHandle.Position=UDim2.new(0,55,0,31)
+pHandle.BackgroundTransparency=1
+pHandle.Text="@"..p.Name
+pHandle.TextColor3=Color3.fromRGB(150,150,150)
+pHandle.Font=Enum.Font.Gotham
+pHandle.TextSize=10
+pHandle.TextXAlignment=Enum.TextXAlignment.Left
+pHandle.Parent=profile
+-- 翻訳データ
+local lang="ja"
+local trans={
+ja={
+title="Void",tab_player="プレイヤー",tab_tools="ツール",tab_target="ターゲット",tab_other="その他",tab_teleport="デレポート",lang_btn="🇯🇵 日本語",
+speed="スピード",jump="ジャンプ力",inf_jump="無限ジャンプ",wall_walk="壁歩き",noclip="貫通",respawn="リスポーン",
+spin="スピン",god="無敵",tp_random="ランダムTP",transparency="透明化",dev="開発中",
+save_loc="場所の名前",save_btn="保存",update="更新",spin_btn="実行",tp_btn="ランダムプレイヤーへ",respawn_btn="今すぐリスポーン"
+},
+en={
+title="Void",tab_player="Player",tab_tools="Tools",tab_target="Target",tab_other="Other",tab_teleport="Teleport",lang_btn="🇺🇸 English",
+speed="Speed",jump="Jump Power",inf_jump="Infinite Jump",wall_walk="Wall Walk",noclip="No Clip",respawn="Respawn",
+spin="Spin",god="Godmode",tp_random="Random TP",transparency="Transparency",dev="Under Development",
+save_loc="Location Name",save_btn="Save",update="Update",spin_btn="Execute",tp_btn="To Random Player",respawn_btn="Respawn Now"
+}
+}
+
+local tabKeys={"tab_player","tab_tools","tab_target","tab_other","tab_teleport"}
 local pages={}
 local btns={}
 
+-- コンテンツエリア（スクロール可能に）
 local content=Instance.new("Frame")
 content.Size=UDim2.new(1,-165,1,-65)
 content.Position=UDim2.new(0,160,0,55)
@@ -181,9 +245,13 @@ content.BackgroundTransparency=1
 content.Parent=f
 
 for i=1,5 do
-local pp=Instance.new("Frame")
+local pp=Instance.new("ScrollingFrame")
 pp.Size=UDim2.new(1,0,1,0)
 pp.BackgroundTransparency=1
+pp.ScrollBarThickness=4
+pp.BorderSizePixel=0
+pp.CanvasSize=UDim2.new(0,0,0,0)
+pp.AutomaticCanvasSize=Enum.AutomaticSize.Y
 pp.Visible=(i==1)
 pp.Parent=content
 local lay=Instance.new("UIListLayout",pp)
@@ -191,11 +259,12 @@ lay.Padding=UDim.new(0,8)
 pages[i]=pp
 end
 
+-- タブボタン
 for i=1,5 do
 local b=Instance.new("TextButton")
 b.Size=UDim2.new(1,-10,0,35)
 b.Position=UDim2.new(0,5,0,5+(i-1)*40)
-b.Text="   "..tabNames[i]
+b.Text="   "..trans[lang][tabKeys[i]]
 b.BackgroundColor3=Color3.fromRGB(35,35,40)
 b.BackgroundTransparency=0.5
 b.TextColor3=Color3.fromRGB(150,150,150)
@@ -232,50 +301,8 @@ end
 btns[1].btn.TextColor3=Color3.fromRGB(255,255,255)
 btns[1].btn.BackgroundTransparency=0.2
 
--- プロフィール（左下）
-local profile=Instance.new("Frame")
-profile.Size=UDim2.new(1,-10,0,60)
-profile.Position=UDim2.new(0,5,1,-70)
-profile.BackgroundColor3=Color3.fromRGB(35,35,40)
-profile.BackgroundTransparency=0.5
-profile.Parent=sidebar
-Instance.new("UICorner",profile).CornerRadius=UDim.new(0,8)
-
-local pImg=Instance.new("ImageLabel")
-pImg.Size=UDim2.new(0,40,0,40)
-pImg.Position=UDim2.new(0,10,0,10)
-pImg.BackgroundColor3=Color3.fromRGB(0,255,150)
-pImg.Text=""
-pImg.Parent=profile
-Instance.new("UICorner",pImg).CornerRadius=UDim.new(0,20)
-pcall(function()
-pImg.Image=game:GetService("Players"):GetUserThumbnailAsync(p.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size150x150)
-end)
-
-local pName=Instance.new("TextLabel")
-pName.Size=UDim2.new(1,-60,0,15)
-pName.Position=UDim2.new(0,55,0,14)
-pName.BackgroundTransparency=1
-pName.Text=p.DisplayName
-pName.TextColor3=Color3.fromRGB(255,255,255)
-pName.Font=Enum.Font.GothamBold
-pName.TextSize=12
-pName.TextXAlignment=Enum.TextXAlignment.Left
-pName.Parent=profile
-
-local pHandle=Instance.new("TextLabel")
-pHandle.Size=UDim2.new(1,-60,0,15)
-pHandle.Position=UDim2.new(0,55,0,31)
-pHandle.BackgroundTransparency=1
-pHandle.Text="@"..p.Name
-pHandle.TextColor3=Color3.fromRGB(150,150,150)
-pHandle.Font=Enum.Font.Gotham
-pHandle.TextSize=10
-pHandle.TextXAlignment=Enum.TextXAlignment.Left
-pHandle.Parent=profile
-
--- ヘルパー：トグルスイッチ
-local function createToggle(parent,txt,default,cb)
+-- ヘルパー：トグル
+local function createToggle(parent,txtKey,default,cb)
 local btn=Instance.new("TextButton")
 btn.Size=UDim2.new(1,0,0,45)
 btn.BackgroundColor3=Color3.fromRGB(40,40,45)
@@ -288,87 +315,37 @@ local lbl=Instance.new("TextLabel")
 lbl.Size=UDim2.new(0.7,0,1,0)
 lbl.Position=UDim2.new(0,15,0,0)
 lbl.BackgroundTransparency=1
-lbl.Text=txt
+lbl.Text=trans[lang][txtKey]
 lbl.TextColor3=Color3.fromRGB(200,200,200)
 lbl.Font=Enum.Font.Gotham
 lbl.TextSize=13
 lbl.TextXAlignment=Enum.TextXAlignment.Left
 lbl.Parent=btn
+lbl:SetAttribute("TransKey",txtKey)
 local sw=Instance.new("Frame")
 sw.Size=UDim2.new(0,45,0,22)
 sw.Position=UDim2.new(1,-55,0.5,-11)
-sw.BackgroundColor3=default and Color3.fromRGB(0,255,150) or Color3.fromRGB(80,80,85)
+sw.BackgroundColor3=default and Color3.fromRGB(0,255,150)or Color3.fromRGB(80,80,85)
 sw.Parent=btn
 Instance.new("UICorner",sw).CornerRadius=UDim.new(0,11)
 local kn=Instance.new("Frame")
 kn.Size=UDim2.new(0,18,0,18)
-kn.Position=default and UDim2.new(1,-20,0.5,-9) or UDim2.new(0,2,0.5,-9)
+kn.Position=default and UDim2.new(1,-20,0.5,-9)or UDim2.new(0,2,0.5,-9)
 kn.BackgroundColor3=Color3.fromRGB(255,255,255)
 kn.Parent=sw
 Instance.new("UICorner",kn).CornerRadius=UDim.new(0,9)
 local state=default
 btn.MouseButton1Click:Connect(function()
 state=not state
-sw.BackgroundColor3=state and Color3.fromRGB(0,255,150) or Color3.fromRGB(80,80,85)
-kn.Position=state and UDim2.new(1,-20,0.5,-9) or UDim2.new(0,2,0.5,-9)
+sw.BackgroundColor3=state and Color3.fromRGB(0,255,150)or Color3.fromRGB(80,80,85)
+kn.Position=state and UDim2.new(1,-20,0.5,-9)or UDim2.new(0,2,0.5,-9)
 cb(state)
 end)
 return btn
 end
 
--- ヘルパー：アコーディオン
-local function createAccordion(parent,txt,build)
-local wrap=Instance.new("Frame")
-wrap.Size=UDim2.new(1,0,0,40)
-wrap.AutomaticSize=Enum.AutomaticSize.Y
-wrap.BackgroundColor3=Color3.fromRGB(40,40,45)
-wrap.BackgroundTransparency=0.4
-wrap.Parent=parent
-Instance.new("UICorner",wrap).CornerRadius=UDim.new(0,8)
-local wL=Instance.new("UIListLayout",wrap)
-wL.SortOrder=Enum.SortOrder.LayoutOrder
-wL.Padding=UDim.new(0,0)
-local hd=Instance.new("TextButton")
-hd.Size=UDim2.new(1,0,0,40)
-hd.BackgroundTransparency=1
-hd.Text="   "..txt
-hd.TextColor3=Color3.fromRGB(200,200,200)
-hd.Font=Enum.Font.GothamBold
-hd.TextSize=13
-hd.TextXAlignment=Enum.TextXAlignment.Left
-hd.LayoutOrder=1
-hd.AutoButtonColor=false
-hd.Parent=wrap
-local ar=Instance.new("TextLabel")
-ar.Size=UDim2.new(0,20,0,20)
-ar.Position=UDim2.new(1,-30,0.5,-10)
-ar.BackgroundTransparency=1
-ar.Text="▼"
-ar.TextColor3=Color3.fromRGB(150,150,150)
-ar.Font=Enum.Font.GothamBold
-ar.TextSize=10
-ar.Parent=hd
-local cf=Instance.new("Frame")
-cf.Size=UDim2.new(1,-20,0,0)
-cf.AutomaticSize=Enum.AutomaticSize.Y
-cf.BackgroundTransparency=1
-cf.LayoutOrder=2
-cf.Visible=false
-cf.Parent=wrap
-local cL=Instance.new("UIListLayout",cf)
-cL.Padding=UDim.new(0,6)
-local cP=Instance.new("UIPadding",cf)
-cP.PaddingBottom=UDim.new(0,12)
-build(cf)
-hd.MouseButton1Click:Connect(function()
-cf.Visible=not cf.Visible
-ar.Text=cf.Visible and "▲" or "▼"
-end)
-return wrap
-end
-
 -- ヘルパー：スライダー
-local function createSlider(parent,txt,min,max,default,cb)
+local function createSlider(parent,txtKey,min,max,default,cb)
 local c=Instance.new("Frame")
 c.Size=UDim2.new(1,0,0,50)
 c.BackgroundColor3=Color3.fromRGB(40,40,45)
@@ -379,12 +356,13 @@ local lbl=Instance.new("TextLabel")
 lbl.Size=UDim2.new(0.5,0,0,20)
 lbl.Position=UDim2.new(0,15,0,5)
 lbl.BackgroundTransparency=1
-lbl.Text=txt
+lbl.Text=trans[lang][txtKey]
 lbl.TextColor3=Color3.fromRGB(200,200,200)
 lbl.Font=Enum.Font.Gotham
 lbl.TextSize=13
 lbl.TextXAlignment=Enum.TextXAlignment.Left
 lbl.Parent=c
+lbl:SetAttribute("TransKey",txtKey)
 local val=Instance.new("TextLabel")
 val.Size=UDim2.new(0,50,0,20)
 val.Position=UDim2.new(1,-80,0,5)
@@ -420,7 +398,7 @@ barBg.InputBegan:Connect(function(i)
 if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=true end
 end)
 UIS.InputChanged:Connect(function(i)
-if dragging and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then
+if dragging and(i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then
 local rx=math.clamp((i.Position.X-barBg.AbsolutePosition.X)/barBg.AbsoluteSize.X,0,1)
 local v=math.floor(min+(max-min)*rx)
 val.Text=tostring(v)
@@ -434,17 +412,69 @@ if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.Use
 end)
 return c
 end
+
+-- ヘルパー：アコーディオン
+local function createAccordion(parent,txtKey,build)
+local wrap=Instance.new("Frame")
+wrap.Size=UDim2.new(1,0,0,40)
+wrap.AutomaticSize=Enum.AutomaticSize.Y
+wrap.BackgroundColor3=Color3.fromRGB(40,40,45)
+wrap.BackgroundTransparency=0.4
+wrap.Parent=parent
+Instance.new("UICorner",wrap).CornerRadius=UDim.new(0,8)
+local wL=Instance.new("UIListLayout",wrap)
+wL.SortOrder=Enum.SortOrder.LayoutOrder
+wL.Padding=UDim.new(0,0)
+local hd=Instance.new("TextButton")
+hd.Size=UDim2.new(1,0,0,40)
+hd.BackgroundTransparency=1
+hd.Text="   "..trans[lang][txtKey]
+hd.TextColor3=Color3.fromRGB(200,200,200)
+hd.Font=Enum.Font.GothamBold
+hd.TextSize=13
+hd.TextXAlignment=Enum.TextXAlignment.Left
+hd.LayoutOrder=1
+hd.AutoButtonColor=false
+hd.Parent=wrap
+hd:SetAttribute("TransKey",txtKey)
+local ar=Instance.new("TextLabel")
+ar.Size=UDim2.new(0,20,0,20)
+ar.Position=UDim2.new(1,-30,0.5,-10)
+ar.BackgroundTransparency=1
+ar.Text="▼"
+ar.TextColor3=Color3.fromRGB(150,150,150)
+ar.Font=Enum.Font.GothamBold
+ar.TextSize=10
+ar.Parent=hd
+local cf=Instance.new("Frame")
+cf.Size=UDim2.new(1,-20,0,0)
+cf.AutomaticSize=Enum.AutomaticSize.Y
+cf.BackgroundTransparency=1
+cf.LayoutOrder=2
+cf.Visible=false
+cf.Parent=wrap
+local cL=Instance.new("UIListLayout",cf)
+cL.Padding=UDim.new(0,6)
+local cP=Instance.new("UIPadding",cf)
+cP.PaddingBottom=UDim.new(0,12)
+build(cf)
+hd.MouseButton1Click:Connect(function()
+cf.Visible=not cf.Visible
+ar.Text=cf.Visible and "▲" or "▼"
+end)
+return wrap
+end
 local pPage=pages[1]
 
--- スピードスライダー
-createSlider(pPage,"スピード",0,200,16,function(v)
+-- スピード
+createSlider(pPage,"speed",0,200,16,function(v)
 if p.Character and p.Character:FindFirstChild("Humanoid")then
 p.Character.Humanoid.WalkSpeed=v
 end
 end)
 
--- ジャンプスライダー
-createSlider(pPage,"ジャンプ力",0,500,50,function(v)
+-- ジャンプ力
+createSlider(pPage,"jump",0,500,50,function(v)
 if p.Character and p.Character:FindFirstChild("Humanoid")then
 p.Character.Humanoid.UseJumpPower=true
 p.Character.Humanoid.JumpPower=v
@@ -452,7 +482,7 @@ end
 end)
 
 -- 無限ジャンプ
-createToggle(pPage,"無限ジャンプ",false,function(s)
+createToggle(pPage,"inf_jump",false,function(s)
 if s then
 local cn
 cn=UIS.JumpRequest:Connect(function()
@@ -461,11 +491,12 @@ if not c then return end
 local h=c:FindFirstChildOfClass("Humanoid")
 if h then h:ChangeState(Enum.HumanoidStateType.Jumping)end
 end)
+p.CharacterAdded:Connect(function()cn:Disconnect()end)
 end
 end)
 
 -- 壁歩き
-createToggle(pPage,"壁歩き",false,function(s)
+createToggle(pPage,"wall_walk",false,function(s)
 if s then
 local wallConn
 wallConn=RS.RenderStepped:Connect(function()
@@ -474,26 +505,32 @@ if not c then wallConn:Disconnect() return end
 local hrp=c:FindFirstChild("HumanoidRootPart")
 local hum=c:FindFirstChildOfClass("Humanoid")
 if not hrp or not hum then return end
-
 local rayParams=RaycastParams.new()
 rayParams.FilterDescendantsInstances={c}
 rayParams.FilterType=Enum.RaycastFilterType.Exclude
 local ray=workspace:Raycast(hrp.Position,hum.MoveDirection*5,rayParams)
 if ray and hum.MoveDirection.Magnitude>0 then
-hum.PlatformStand=false
-hum.WalkSpeed=16
-local bv=hrp:FindFirstChild("WallWalkBV") or Instance.new("BodyVelocity",hrp)
+local bv=hrp:FindFirstChild("WallWalkBV")or Instance.new("BodyVelocity",hrp)
 bv.Name="WallWalkBV"
 bv.MaxForce=Vector3.new(9e9,9e9,9e9)
 bv.Velocity=hum.MoveDirection*10
-local bf=hrp:FindFirstChild("WallWalkBF") or Instance.new("BodyForce",hrp)
+local bf=hrp:FindFirstChild("WallWalkBF")or Instance.new("BodyForce",hrp)
 bf.Name="WallWalkBF"
 bf.Force=Vector3.new(0,workspace.Gravity*hrp:GetMass(),0)
 else
-local bv=hrp:FindFirstChild("WallWalkBV")
-if bv then bv:Destroy()end
-local bf=hrp:FindFirstChild("WallWalkBF")
-if bf then bf:Destroy()end
+if hrp:FindFirstChild("WallWalkBV")then hrp.WallWalkBV:Destroy()end
+if hrp:FindFirstChild("WallWalkBF")then hrp.WallWalkBF:Destroy()end
+end
+end)
+p.CharacterAdded:Connect(function()
+wallConn:Disconnect()
+local c=p.Character
+if c then
+local hrp=c:FindFirstChild("HumanoidRootPart")
+if hrp then
+if hrp:FindFirstChild("WallWalkBV")then hrp.WallWalkBV:Destroy()end
+if hrp:FindFirstChild("WallWalkBF")then hrp.WallWalkBF:Destroy()end
+end
 end
 end)
 else
@@ -501,17 +538,15 @@ local c=p.Character
 if c then
 local hrp=c:FindFirstChild("HumanoidRootPart")
 if hrp then
-local bv=hrp:FindFirstChild("WallWalkBV")
-if bv then bv:Destroy()end
-local bf=hrp:FindFirstChild("WallWalkBF")
-if bf then bf:Destroy()end
+if hrp:FindFirstChild("WallWalkBV")then hrp.WallWalkBV:Destroy()end
+if hrp:FindFirstChild("WallWalkBF")then hrp.WallWalkBF:Destroy()end
 end
 end
 end
 end)
 
 -- 貫通（No Clip）
-createToggle(pPage,"貫通",false,function(s)
+createToggle(pPage,"noclip",false,function(s)
 if s then
 local cn
 cn=RS.Stepped:Connect(function()
@@ -521,6 +556,7 @@ for _,v in ipairs(c:GetDescendants())do
 if v:IsA("BasePart")then v.CanCollide=false end
 end
 end)
+p.CharacterAdded:Connect(function()cn:Disconnect()end)
 else
 local c=p.Character
 if c then
@@ -534,13 +570,14 @@ end)
 -- リスポーン
 local respawnBtn=Instance.new("TextButton")
 respawnBtn.Size=UDim2.new(1,0,0,45)
-respawnBtn.Text="リスポーン"
+respawnBtn.Text=trans[lang]["respawn_btn"]
 respawnBtn.BackgroundColor3=Color3.fromRGB(255,100,100)
 respawnBtn.TextColor3=Color3.fromRGB(255,255,255)
 respawnBtn.Font=Enum.Font.GothamBold
 respawnBtn.TextSize=13
 respawnBtn.AutoButtonColor=false
 respawnBtn.Parent=pPage
+respawnBtn:SetAttribute("TransKey","respawn_btn")
 Instance.new("UICorner",respawnBtn).CornerRadius=UDim.new(0,8)
 respawnBtn.MouseButton1Click:Connect(function()
 if p.Character then
@@ -551,7 +588,7 @@ end)
 -- ツールタブ
 local tPage=pages[2]
 
-createAccordion(tPage,"スピン",function(cf)
+createAccordion(tPage,"spin",function(cf)
 local box=Instance.new("TextBox")
 box.Size=UDim2.new(1,0,0,35)
 box.Text="5"
@@ -565,13 +602,14 @@ box.Parent=cf
 Instance.new("UICorner",box).CornerRadius=UDim.new(0,6)
 local b=Instance.new("TextButton")
 b.Size=UDim2.new(1,0,0,35)
-b.Text="実行"
+b.Text=trans[lang]["spin_btn"]
 b.BackgroundColor3=Color3.fromRGB(0,255,150)
 b.TextColor3=Color3.fromRGB(0,0,0)
 b.Font=Enum.Font.GothamBold
 b.TextSize=13
 b.AutoButtonColor=false
 b.Parent=cf
+b:SetAttribute("TransKey","spin_btn")
 Instance.new("UICorner",b).CornerRadius=UDim.new(0,6)
 b.MouseButton1Click:Connect(function()
 local spd=tonumber(box.Text)or 5
@@ -586,8 +624,8 @@ end)
 end)
 end)
 
-createAccordion(tPage,"無敵",function(cf)
-createToggle(cf,"無敵有効",false,function(s)
+createAccordion(tPage,"god",function(cf)
+createToggle(cf,"god",false,function(s)
 if s then
 local cn
 cn=RS.Heartbeat:Connect(function()
@@ -596,20 +634,22 @@ if not c then cn:Disconnect() return end
 local h=c:FindFirstChildOfClass("Humanoid")
 if h then h.Health=h.MaxHealth end
 end)
+p.CharacterAdded:Connect(function()cn:Disconnect()end)
 end
 end)
 end)
 
-createAccordion(tPage,"TP",function(cf)
+createAccordion(tPage,"tp_random",function(cf)
 local b=Instance.new("TextButton")
 b.Size=UDim2.new(1,0,0,35)
-b.Text="ランダムプレイヤーへ"
+b.Text=trans[lang]["tp_btn"]
 b.BackgroundColor3=Color3.fromRGB(0,255,150)
 b.TextColor3=Color3.fromRGB(0,0,0)
 b.Font=Enum.Font.GothamBold
 b.TextSize=13
 b.AutoButtonColor=false
 b.Parent=cf
+b:SetAttribute("TransKey","tp_btn")
 Instance.new("UICorner",b).CornerRadius=UDim.new(0,6)
 b.MouseButton1Click:Connect(function()
 local o={}
@@ -625,8 +665,8 @@ end
 end)
 end)
 
-createAccordion(tPage,"透明化",function(cf)
-createToggle(cf,"透明有効",false,function(s)
+createAccordion(tPage,"transparency",function(cf)
+createToggle(cf,"transparency",false,function(s)
 if s then
 local cn
 cn=RS.RenderStepped:Connect(function()
@@ -637,6 +677,7 @@ if v:IsA("BasePart")then v.LocalTransparencyModifier=1 end
 if v:IsA("Decal")then v.Transparency=1 end
 end
 end)
+p.CharacterAdded:Connect(function()cn:Disconnect()end)
 else
 local c=p.Character
 if c then
@@ -654,11 +695,12 @@ local oPage=pages[4]
 local dev=Instance.new("TextLabel")
 dev.Size=UDim2.new(1,0,0,100)
 dev.BackgroundTransparency=1
-dev.Text="開発中"
+dev.Text=trans[lang]["dev"]
 dev.TextColor3=Color3.fromRGB(150,150,150)
 dev.Font=Enum.Font.GothamBold
 dev.TextSize=24
 dev.Parent=oPage
+dev:SetAttribute("TransKey","dev")
 
 -- ターゲットタブ
 local tgtPage=pages[3]
@@ -708,7 +750,7 @@ local saveBox=Instance.new("TextBox")
 saveBox.Size=UDim2.new(0.6,0,1,0)
 saveBox.Position=UDim2.new(0,0,0,0)
 saveBox.Text=""
-saveBox.PlaceholderText="場所の名前"
+saveBox.PlaceholderText=trans[lang]["save_loc"]
 saveBox.BackgroundColor3=Color3.fromRGB(50,50,55)
 saveBox.BackgroundTransparency=0.3
 saveBox.TextColor3=Color3.fromRGB(0,255,150)
@@ -716,17 +758,19 @@ saveBox.Font=Enum.Font.GothamBold
 saveBox.TextSize=12
 saveBox.ClearTextOnFocus=false
 saveBox.Parent=saveRow
+saveBox:SetAttribute("PlaceholderKey","save_loc")
 Instance.new("UICorner",saveBox).CornerRadius=UDim.new(0,6)
 local saveBtn=Instance.new("TextButton")
 saveBtn.Size=UDim2.new(0.35,0,1,0)
 saveBtn.Position=UDim2.new(0.65,0,0,0)
-saveBtn.Text="保存"
+saveBtn.Text=trans[lang]["save_btn"]
 saveBtn.BackgroundColor3=Color3.fromRGB(0,255,150)
 saveBtn.TextColor3=Color3.fromRGB(0,0,0)
 saveBtn.Font=Enum.Font.GothamBold
 saveBtn.TextSize=12
 saveBtn.AutoButtonColor=false
 saveBtn.Parent=saveRow
+saveBtn:SetAttribute("TransKey","save_btn")
 Instance.new("UICorner",saveBtn).CornerRadius=UDim.new(0,6)
 
 local locList=Instance.new("ScrollingFrame")
@@ -774,13 +818,14 @@ end)
 local dPage=pages[5]
 local rf=Instance.new("TextButton")
 rf.Size=UDim2.new(1,0,0,30)
-rf.Text="更新"
+rf.Text=trans[lang]["update"]
 rf.BackgroundColor3=Color3.fromRGB(0,255,150)
 rf.TextColor3=Color3.fromRGB(0,0,0)
 rf.Font=Enum.Font.GothamBold
 rf.TextSize=12
 rf.AutoButtonColor=false
 rf.Parent=dPage
+rf:SetAttribute("TransKey","update")
 Instance.new("UICorner",rf).CornerRadius=UDim.new(0,6)
 local sf=Instance.new("ScrollingFrame")
 sf.Size=UDim2.new(1,0,1,-40)
@@ -819,18 +864,35 @@ end
 rf.MouseButton1Click:Connect(upd)
 upd()
 
--- 言語切り替え
-lb.MouseButton1Click:Connect(function()
-if lb.Text=="🇯🇵 日本語"then
-lb.Text="🇺🇸 English"
-for i=1,5 do btns[i].btn.Text="   "..enNames[i]end
-else
-lb.Text="🇯🇵 日本語"
-for i=1,5 do btns[i].btn.Text="   "..tabNames[i]end
+-- 言語切り替えロジック
+local function updateLanguage()
+for _,obj in ipairs(sg:GetDescendants())do
+if obj:IsA("TextLabel") and obj:GetAttribute("TransKey")then
+obj.Text=trans[lang][obj:GetAttribute("TransKey")]
 end
+if obj:IsA("TextButton") and obj:GetAttribute("TransKey")then
+obj.Text=trans[lang][obj:GetAttribute("TransKey")]
+end
+if obj:IsA("TextBox") and obj:GetAttribute("PlaceholderKey")then
+obj.PlaceholderText=trans[lang][obj:GetAttribute("PlaceholderKey")]
+end
+end
+for i,key in ipairs(tabKeys)do
+btns[i].btn.Text="   "..trans[lang][key]
+end
+lb.Text=trans[lang]["lang_btn"]
+end
+
+lb.MouseButton1Click:Connect(function()
+if lang=="ja"then
+lang="en"
+else
+lang="ja"
+end
+updateLanguage()
 end)
 
--- キャラクター再スポーン時の処理
+-- リスポーン時の処理
 p.CharacterAdded:Connect(function(ch)
 task.wait(1)
 local h=ch:FindFirstChildOfClass("Humanoid")
