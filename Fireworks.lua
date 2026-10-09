@@ -3,11 +3,13 @@ local pg=p:WaitForChild("PlayerGui")
 local UIS=game:GetService("UserInputService")
 local RS=game:GetService("RunService")
 if pg:FindFirstChild("VoidUI")then pg.VoidUI:Destroy()end
+
 local sg=Instance.new("ScreenGui")
 sg.Name="VoidUI"
 sg.ResetOnSpawn=false
 sg.Parent=pg
 
+-- メインフレーム
 local f=Instance.new("Frame")
 f.Size=UDim2.new(0,650,0,400)
 f.Position=UDim2.new(0.5,-325,0.5,-200)
@@ -21,6 +23,7 @@ st.Color=Color3.fromRGB(0,255,150)
 st.Thickness=1
 st.Transparency=0.6
 
+-- 最小化ボタン（V）
 local floatBtn=Instance.new("TextButton")
 floatBtn.Size=UDim2.new(0,45,0,45)
 floatBtn.Position=UDim2.new(0,15,0.5,-22.5)
@@ -34,32 +37,50 @@ floatBtn.Parent=sg
 Instance.new("UICorner",floatBtn).CornerRadius=UDim.new(0,12)
 local fs=Instance.new("UIStroke",floatBtn)
 fs.Color=Color3.fromRGB(0,255,150)
-
-local fbd,fbm,fbs,fbp=false,false,nil,nil
-floatBtn.InputBegan:Connect(function(i)
-if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-fbd=true fbm=false fbs=i.Position fbp=floatBtn.Position
-end
-end)
-UIS.InputChanged:Connect(function(i)
-if fbd and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then
-local d=i.Position-fbs
-if math.abs(d.X)>5 or math.abs(d.Y)>5 then fbm=true end
-floatBtn.Position=UDim2.new(fbp.X.Scale,fbp.X.Offset+d.X,fbp.Y.Scale,fbp.Y.Offset+d.Y)
-end
-end)
-UIS.InputEnded:Connect(function(i)
-if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then fbd=false end
-end)
 floatBtn.MouseButton1Click:Connect(function()
-if fbm then return end
 f.Visible=true floatBtn.Visible=false
 end)
 
+-- トップバー
 local top=Instance.new("Frame")
 top.Size=UDim2.new(1,0,0,45)
 top.BackgroundTransparency=1
 top.Parent=f
+
+-- ドラッグ用の透明ボタン（指で動かすため）
+local dragArea=Instance.new("TextButton")
+dragArea.Size=UDim2.new(1,-150,1,0)
+dragArea.BackgroundTransparency=1
+dragArea.Text=""
+dragArea.Parent=top
+local dragging=false
+local dragInput=nil
+local dragStart=nil
+local startPos=nil
+local function update(input)
+local delta=input.Position-dragStart
+f.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+delta.X,startPos.Y.Scale,startPos.Y.Offset+delta.Y)
+end
+dragArea.InputBegan:Connect(function(input)
+if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+dragging=true
+dragStart=input.Position
+startPos=f.Position
+input.Changed:Connect(function()
+if input.UserInputState==Enum.UserInputState.End then dragging=false end
+end)
+end
+end)
+dragArea.InputChanged:Connect(function(input)
+if input.UserInputType==Enum.UserInputType.MouseMovement or input.UserInputType==Enum.UserInputType.Touch then
+dragInput=input
+end
+end)
+UIS.InputChanged:Connect(function(input)
+if input==dragInput and dragging then update(input) end
+end)
+
+-- ロゴとタイトル
 local logo=Instance.new("TextLabel")
 logo.Size=UDim2.new(0,35,0,35)
 logo.Position=UDim2.new(0,10,0,5)
@@ -72,6 +93,7 @@ logo.Parent=top
 Instance.new("UICorner",logo).CornerRadius=UDim.new(0,8)
 local ls=Instance.new("UIStroke",logo)
 ls.Color=Color3.fromRGB(0,255,150)
+
 local title=Instance.new("TextLabel")
 title.Size=UDim2.new(0,200,0,20)
 title.Position=UDim2.new(0,55,0,5)
@@ -82,6 +104,7 @@ title.Font=Enum.Font.GothamBold
 title.TextSize=16
 title.TextXAlignment=Enum.TextXAlignment.Left
 title.Parent=top
+
 local discord=Instance.new("TextButton")
 discord.Size=UDim2.new(0,200,0,15)
 discord.Position=UDim2.new(0,55,0,25)
@@ -95,6 +118,8 @@ discord.Parent=top
 discord.MouseButton1Click:Connect(function()
 if setclipboard then setclipboard("https://discord.gg/Znj8eBfa9")end
 end)
+
+-- 右上のボタン類
 local lb=Instance.new("TextButton")
 lb.Size=UDim2.new(0,90,0,25)
 lb.Position=UDim2.new(1,-210,0,10)
@@ -106,6 +131,7 @@ lb.Font=Enum.Font.Gotham
 lb.TextSize=11
 lb.Parent=top
 Instance.new("UICorner",lb).CornerRadius=UDim.new(0,6)
+
 local minBtn=Instance.new("TextButton")
 minBtn.Size=UDim2.new(0,25,0,25)
 minBtn.Position=UDim2.new(1,-80,0,10)
@@ -116,6 +142,7 @@ minBtn.TextColor3=Color3.fromRGB(255,255,255)
 minBtn.Font=Enum.Font.GothamBold
 minBtn.Parent=top
 Instance.new("UICorner",minBtn).CornerRadius=UDim.new(0,6)
+
 local close=Instance.new("TextButton")
 close.Size=UDim2.new(0,25,0,25)
 close.Position=UDim2.new(1,-45,0,10)
@@ -126,12 +153,14 @@ close.TextColor3=Color3.fromRGB(255,100,100)
 close.Font=Enum.Font.GothamBold
 close.Parent=top
 Instance.new("UICorner",close).CornerRadius=UDim.new(0,6)
+
 close.MouseButton1Click:Connect(function()
 f.Visible=false floatBtn.Visible=true
 end)
 minBtn.MouseButton1Click:Connect(function()
 f.Visible=false floatBtn.Visible=true
 end)
+-- サイドバー
 local sidebar=Instance.new("Frame")
 sidebar.Size=UDim2.new(0,150,1,-55)
 sidebar.Position=UDim2.new(0,5,0,50)
@@ -203,6 +232,7 @@ end
 btns[1].btn.TextColor3=Color3.fromRGB(255,255,255)
 btns[1].btn.BackgroundTransparency=0.2
 
+-- プロフィール（左下）
 local profile=Instance.new("Frame")
 profile.Size=UDim2.new(1,-10,0,60)
 profile.Position=UDim2.new(0,5,1,-70)
@@ -218,11 +248,9 @@ pImg.BackgroundColor3=Color3.fromRGB(0,255,150)
 pImg.Text=""
 pImg.Parent=profile
 Instance.new("UICorner",pImg).CornerRadius=UDim.new(0,20)
-
-local ok,url=pcall(function()
-return game:GetService("Players"):GetUserThumbnailAsync(p.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size150x150)
+pcall(function()
+pImg.Image=game:GetService("Players"):GetUserThumbnailAsync(p.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size150x150)
 end)
-if ok and url then pImg.Image=url end
 
 local pName=Instance.new("TextLabel")
 pName.Size=UDim2.new(1,-60,0,15)
@@ -234,6 +262,7 @@ pName.Font=Enum.Font.GothamBold
 pName.TextSize=12
 pName.TextXAlignment=Enum.TextXAlignment.Left
 pName.Parent=profile
+
 local pHandle=Instance.new("TextLabel")
 pHandle.Size=UDim2.new(1,-60,0,15)
 pHandle.Position=UDim2.new(0,55,0,31)
@@ -244,6 +273,8 @@ pHandle.Font=Enum.Font.Gotham
 pHandle.TextSize=10
 pHandle.TextXAlignment=Enum.TextXAlignment.Left
 pHandle.Parent=profile
+
+-- ヘルパー：トグルスイッチ
 local function createToggle(parent,txt,default,cb)
 local btn=Instance.new("TextButton")
 btn.Size=UDim2.new(1,0,0,45)
@@ -285,6 +316,7 @@ end)
 return btn
 end
 
+-- ヘルパー：アコーディオン
 local function createAccordion(parent,txt,build)
 local wrap=Instance.new("Frame")
 wrap.Size=UDim2.new(1,0,0,40)
@@ -335,58 +367,91 @@ end)
 return wrap
 end
 
--- プレイヤータブ
+-- ヘルパー：スライダー
+local function createSlider(parent,txt,min,max,default,cb)
+local c=Instance.new("Frame")
+c.Size=UDim2.new(1,0,0,50)
+c.BackgroundColor3=Color3.fromRGB(40,40,45)
+c.BackgroundTransparency=0.4
+c.Parent=parent
+Instance.new("UICorner",c).CornerRadius=UDim.new(0,8)
+local lbl=Instance.new("TextLabel")
+lbl.Size=UDim2.new(0.5,0,0,20)
+lbl.Position=UDim2.new(0,15,0,5)
+lbl.BackgroundTransparency=1
+lbl.Text=txt
+lbl.TextColor3=Color3.fromRGB(200,200,200)
+lbl.Font=Enum.Font.Gotham
+lbl.TextSize=13
+lbl.TextXAlignment=Enum.TextXAlignment.Left
+lbl.Parent=c
+local val=Instance.new("TextLabel")
+val.Size=UDim2.new(0,50,0,20)
+val.Position=UDim2.new(1,-80,0,5)
+val.BackgroundTransparency=1
+val.Text=tostring(default)
+val.TextColor3=Color3.fromRGB(0,255,150)
+val.Font=Enum.Font.GothamBold
+val.TextSize=13
+val.Parent=c
+local barBg=Instance.new("Frame")
+barBg.Size=UDim2.new(1,-30,0,6)
+barBg.Position=UDim2.new(0,15,1,-15)
+barBg.BackgroundColor3=Color3.fromRGB(60,60,65)
+barBg.Parent=c
+Instance.new("UICorner",barBg).CornerRadius=UDim.new(0,3)
+local barFill=Instance.new("Frame")
+barFill.Size=UDim2.new((default-min)/(max-min),0,1,0)
+barFill.BackgroundColor3=Color3.fromRGB(0,255,150)
+barFill.Parent=barBg
+Instance.new("UICorner",barFill).CornerRadius=UDim.new(0,3)
+local knob=Instance.new("TextButton")
+knob.Size=UDim2.new(0,16,0,16)
+knob.Position=UDim2.new(barFill.Size.X.Scale,-8,0.5,-8)
+knob.BackgroundColor3=Color3.fromRGB(200,200,200)
+knob.Text=""
+knob.Parent=barBg
+Instance.new("UICorner",knob).CornerRadius=UDim.new(0,8)
+local dragging=false
+knob.InputBegan:Connect(function(i)
+if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=true end
+end)
+barBg.InputBegan:Connect(function(i)
+if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=true end
+end)
+UIS.InputChanged:Connect(function(i)
+if dragging and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then
+local rx=math.clamp((i.Position.X-barBg.AbsolutePosition.X)/barBg.AbsoluteSize.X,0,1)
+local v=math.floor(min+(max-min)*rx)
+val.Text=tostring(v)
+barFill.Size=UDim2.new(rx,0,1,0)
+knob.Position=UDim2.new(rx,-8,0.5,-8)
+cb(v)
+end
+end)
+UIS.InputEnded:Connect(function(i)
+if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=false end
+end)
+return c
+end
 local pPage=pages[1]
-local flightState=false
-local fBV,fBG,fHum,fConn
 
-local function stopFlight()
-flightState=false
-if fBV then fBV:Destroy() fBV=nil end
-if fBG then fBG:Destroy() fBG=nil end
-if fConn then fConn:Disconnect() fConn=nil end
-if fHum then fHum.PlatformStand=false fHum=nil end
+-- スピードスライダー
+createSlider(pPage,"スピード",0,200,16,function(v)
+if p.Character and p.Character:FindFirstChild("Humanoid")then
+p.Character.Humanoid.WalkSpeed=v
 end
-
-local function startFlight()
-local c=p.Character
-if not c then return end
-local hrp=c:FindFirstChild("HumanoidRootPart")
-local hum=c:FindFirstChildOfClass("Humanoid")
-if not hrp or not hum then return end
-flightState=true
-fHum=hum
-hum.PlatformStand=true
-fBV=Instance.new("BodyVelocity",hrp)
-fBV.MaxForce=Vector3.new(9e9,9e9,9e9)
-fBV.Velocity=Vector3.zero
-fBG=Instance.new("BodyGyro",hrp)
-fBG.MaxTorque=Vector3.new(9e9,9e9,9e9)
-fBG.P=10000
-fBG.D=100
-fConn=RS.RenderStepped:Connect(function()
-if not flightState then return end
-local c=p.Character
-if not c then return end
-local h=c:FindFirstChild("HumanoidRootPart")
-if not h then return end
-local cam=workspace.CurrentCamera
-local d=Vector3.zero
-if UIS:IsKeyDown(Enum.KeyCode.W)then d=d+cam.CFrame.LookVector end
-if UIS:IsKeyDown(Enum.KeyCode.S)then d=d-cam.CFrame.LookVector end
-if UIS:IsKeyDown(Enum.KeyCode.A)then d=d-cam.CFrame.RightVector end
-if UIS:IsKeyDown(Enum.KeyCode.D)then d=d+cam.CFrame.RightVector end
-if UIS:IsKeyDown(Enum.KeyCode.Space)then d=d+Vector3.new(0,1,0)end
-if UIS:IsKeyDown(Enum.KeyCode.LeftControl)then d=d-Vector3.new(0,1,0)end
-fBV.Velocity=d*50
-fBG.CFrame=cam.CFrame
-end)
-end
-
-createToggle(pPage,"飛行",false,function(s)
-if s then startFlight() else stopFlight() end
 end)
 
+-- ジャンプスライダー
+createSlider(pPage,"ジャンプ力",0,500,50,function(v)
+if p.Character and p.Character:FindFirstChild("Humanoid")then
+p.Character.Humanoid.UseJumpPower=true
+p.Character.Humanoid.JumpPower=v
+end
+end)
+
+-- 無限ジャンプ
 createToggle(pPage,"無限ジャンプ",false,function(s)
 if s then
 local cn
@@ -399,27 +464,88 @@ end)
 end
 end)
 
-local tpBtn=Instance.new("TextButton")
-tpBtn.Size=UDim2.new(1,0,0,45)
-tpBtn.Text="ランダムTP"
-tpBtn.BackgroundColor3=Color3.fromRGB(40,40,45)
-tpBtn.BackgroundTransparency=0.4
-tpBtn.TextColor3=Color3.fromRGB(200,200,200)
-tpBtn.Font=Enum.Font.GothamBold
-tpBtn.TextSize=13
-tpBtn.AutoButtonColor=false
-tpBtn.Parent=pPage
-Instance.new("UICorner",tpBtn).CornerRadius=UDim.new(0,8)
-tpBtn.MouseButton1Click:Connect(function()
-local o={}
-for _,pl in ipairs(game.Players:GetPlayers())do
-if pl~=p then table.insert(o,pl)end
+-- 壁歩き
+createToggle(pPage,"壁歩き",false,function(s)
+if s then
+local wallConn
+wallConn=RS.RenderStepped:Connect(function()
+local c=p.Character
+if not c then wallConn:Disconnect() return end
+local hrp=c:FindFirstChild("HumanoidRootPart")
+local hum=c:FindFirstChildOfClass("Humanoid")
+if not hrp or not hum then return end
+
+local rayParams=RaycastParams.new()
+rayParams.FilterDescendantsInstances={c}
+rayParams.FilterType=Enum.RaycastFilterType.Exclude
+local ray=workspace:Raycast(hrp.Position,hum.MoveDirection*5,rayParams)
+if ray and hum.MoveDirection.Magnitude>0 then
+hum.PlatformStand=false
+hum.WalkSpeed=16
+local bv=hrp:FindFirstChild("WallWalkBV") or Instance.new("BodyVelocity",hrp)
+bv.Name="WallWalkBV"
+bv.MaxForce=Vector3.new(9e9,9e9,9e9)
+bv.Velocity=hum.MoveDirection*10
+local bf=hrp:FindFirstChild("WallWalkBF") or Instance.new("BodyForce",hrp)
+bf.Name="WallWalkBF"
+bf.Force=Vector3.new(0,workspace.Gravity*hrp:GetMass(),0)
+else
+local bv=hrp:FindFirstChild("WallWalkBV")
+if bv then bv:Destroy()end
+local bf=hrp:FindFirstChild("WallWalkBF")
+if bf then bf:Destroy()end
 end
-if #o>0 then
-local t=o[math.random(1,#o)]
-if t.Character and t.Character:FindFirstChild("HumanoidRootPart") and p.Character and p.Character:FindFirstChild("HumanoidRootPart")then
-p.Character.HumanoidRootPart.CFrame=t.Character.HumanoidRootPart.CFrame*CFrame.new(0,0,3)
+end)
+else
+local c=p.Character
+if c then
+local hrp=c:FindFirstChild("HumanoidRootPart")
+if hrp then
+local bv=hrp:FindFirstChild("WallWalkBV")
+if bv then bv:Destroy()end
+local bf=hrp:FindFirstChild("WallWalkBF")
+if bf then bf:Destroy()end
 end
+end
+end
+end)
+
+-- 貫通（No Clip）
+createToggle(pPage,"貫通",false,function(s)
+if s then
+local cn
+cn=RS.Stepped:Connect(function()
+local c=p.Character
+if not c then cn:Disconnect() return end
+for _,v in ipairs(c:GetDescendants())do
+if v:IsA("BasePart")then v.CanCollide=false end
+end
+end)
+else
+local c=p.Character
+if c then
+for _,v in ipairs(c:GetDescendants())do
+if v:IsA("BasePart")then v.CanCollide=true end
+end
+end
+end
+end)
+
+-- リスポーン
+local respawnBtn=Instance.new("TextButton")
+respawnBtn.Size=UDim2.new(1,0,0,45)
+respawnBtn.Text="リスポーン"
+respawnBtn.BackgroundColor3=Color3.fromRGB(255,100,100)
+respawnBtn.TextColor3=Color3.fromRGB(255,255,255)
+respawnBtn.Font=Enum.Font.GothamBold
+respawnBtn.TextSize=13
+respawnBtn.AutoButtonColor=false
+respawnBtn.Parent=pPage
+Instance.new("UICorner",respawnBtn).CornerRadius=UDim.new(0,8)
+respawnBtn.MouseButton1Click:Connect(function()
+if p.Character then
+local h=p.Character:FindFirstChildOfClass("Humanoid")
+if h then h.Health=0 end
 end
 end)
 -- ツールタブ
@@ -460,28 +586,6 @@ end)
 end)
 end)
 
-createAccordion(tPage,"貫通",function(cf)
-createToggle(cf,"貫通有効",false,function(s)
-if s then
-local cn
-cn=RS.Stepped:Connect(function()
-local c=p.Character
-if not c then cn:Disconnect() return end
-for _,v in ipairs(c:GetDescendants())do
-if v:IsA("BasePart")then v.CanCollide=false end
-end
-end)
-else
-local c=p.Character
-if c then
-for _,v in ipairs(c:GetDescendants())do
-if v:IsA("BasePart")then v.CanCollide=true end
-end
-end
-end
-end)
-end)
-
 createAccordion(tPage,"無敵",function(cf)
 createToggle(cf,"無敵有効",false,function(s)
 if s then
@@ -492,25 +596,6 @@ if not c then cn:Disconnect() return end
 local h=c:FindFirstChildOfClass("Humanoid")
 if h then h.Health=h.MaxHealth end
 end)
-end
-end)
-end)
-
-createAccordion(tPage,"リスポーン",function(cf)
-local b=Instance.new("TextButton")
-b.Size=UDim2.new(1,0,0,35)
-b.Text="今すぐリスポーン"
-b.BackgroundColor3=Color3.fromRGB(255,100,100)
-b.TextColor3=Color3.fromRGB(255,255,255)
-b.Font=Enum.Font.GothamBold
-b.TextSize=13
-b.AutoButtonColor=false
-b.Parent=cf
-Instance.new("UICorner",b).CornerRadius=UDim.new(0,6)
-b.MouseButton1Click:Connect(function()
-if p.Character then
-local h=p.Character:FindFirstChildOfClass("Humanoid")
-if h then h.Health=0 end
 end
 end)
 end)
@@ -734,30 +819,6 @@ end
 rf.MouseButton1Click:Connect(upd)
 upd()
 
--- ドラッグ移動
-local dragging,dragInput,dragStart,startPos
-top.InputBegan:Connect(function(input)
-if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
-dragging=true
-dragStart=input.Position
-startPos=f.Position
-input.Changed:Connect(function()
-if input.UserInputState==Enum.UserInputState.End then dragging=false end
-end)
-end
-end)
-top.InputChanged:Connect(function(input)
-if input.UserInputType==Enum.UserInputType.MouseMovement or input.UserInputType==Enum.UserInputType.Touch then
-dragInput=input
-end
-end)
-UIS.InputChanged:Connect(function(input)
-if input==dragInput and dragging then
-local d=input.Position-dragStart
-f.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
-end
-end)
-
 -- 言語切り替え
 lb.MouseButton1Click:Connect(function()
 if lb.Text=="🇯🇵 日本語"then
@@ -769,9 +830,8 @@ for i=1,5 do btns[i].btn.Text="   "..tabNames[i]end
 end
 end)
 
--- リスポーン時の処理
+-- キャラクター再スポーン時の処理
 p.CharacterAdded:Connect(function(ch)
-stopFlight()
 task.wait(1)
 local h=ch:FindFirstChildOfClass("Humanoid")
 if h then
